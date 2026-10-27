@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- Instagram-style rounded square camera frame -->
+    <path
+        android:strokeWidth="4"
+        android:strokeColor="#FFD62976"
+        android:fillColor="#00000000"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:pathData="M40,32 L68,32 A12,12 0 0,1 80,44 L80,68 A12,12 0 0,1 68,80 L40,80 A12,12 0 0,1 28,68 L28,44 A12,12 0 0,1 40,32 Z" />
+
+    <!-- Center Camera Lens with Live Voice Audio Waves -->
+    <path
+        android:strokeWidth="3.5"
+        android:strokeColor="#FFFA7E1E"
+        android:fillColor="#00000000"
+        android:pathData="M54,44 A12,12 0 1,1 53.9,44 Z" />
+
+    <!-- Center bar -->
+    <path
+        android:strokeWidth="2.5"
+        android:strokeLineCap="round"
+        android:strokeColor="#FFFFFFFF"
+        android:fillColor="#00000000"
+        android:pathData="M54,50 L54,62" />
+
+    <!-- Left bar -->
+    <path
+        android:strokeWidth="2.5"
+        android:strokeLineCap="round"
+        android:strokeColor="#FFFFFFFF"
+        android:fillColor="#00000000"
+        android:pathData="M49,53 L49,59" />
+
+    <!-- Right bar -->
+    <path
+        android:strokeWidth="2.5"
+        android:strokeLineCap="round"
+        android:strokeColor="#FFFFFFFF"
+        android:fillColor="#00000000"
+        android:pathData="M59,52 L59,60" />
+
+    <!-- Camera Flash dot -->
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M70,40 A2.5,2.5 0 1,1 69.9,40 Z" />
+
+    <!-- Live indicator radio waves (top right corner) -->
+    <path
+        android:strokeWidth="2"
+        android:strokeLineCap="round"
+        android:strokeColor="#FFFA7E1E"
+        android:fillColor="#00000000"
+        android:pathData="M76,30 A10,10 0 0,1 84,38" />
+</vector>

@@ -1,0 +1,732 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/rootVoiceRoom"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/bg_supercar_room"
+    android:fitsSystemWindows="true">
+
+    <!-- Top Status / Room Header Bar -->
+    <LinearLayout
+        android:id="@+id/layoutTopHeader"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingHorizontal="14dp"
+        android:paddingTop="12dp"
+        android:paddingBottom="8dp">
+
+        <!-- Room Name & Follow Pill -->
+        <LinearLayout
+            android:id="@+id/btnRoomBadge"
+            android:layout_width="wrap_content"
+            android:layout_height="32dp"
+            android:background="@drawable/bg_pill_badge"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingHorizontal="8dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="🏎️"
+                android:textSize="14sp" />
+
+            <TextView
+                android:id="@+id/tvRoomTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="4dp"
+                android:text="@string/room_title_default"
+                android:textColor="@color/white"
+                android:textSize="12sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/btnFollowHost"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:layout_marginStart="6dp"
+                android:background="@drawable/bg_edit_button"
+                android:gravity="center"
+                android:text="+"
+                android:textColor="@color/white"
+                android:textSize="12sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <View
+            android:layout_width="0dp"
+            android:layout_height="1dp"
+            android:layout_weight="1" />
+
+        <!-- Listener Avatars & Online Count -->
+        <LinearLayout
+            android:id="@+id/layoutOnlineListeners"
+            android:layout_width="wrap_content"
+            android:layout_height="32dp"
+            android:background="@drawable/bg_pill_badge"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingHorizontal="8dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="👑 🦁 ⚡"
+                android:textSize="11sp" />
+
+            <TextView
+                android:id="@+id/tvOnlineCount"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="4dp"
+                android:text="3"
+                android:textColor="@color/white"
+                android:textSize="11sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <!-- Moderator View Pill Button -->
+        <TextView
+            android:id="@+id/btnModeratorView"
+            android:layout_width="wrap_content"
+            android:layout_height="32dp"
+            android:layout_marginStart="6dp"
+            android:background="@drawable/bg_edit_button"
+            android:gravity="center"
+            android:paddingHorizontal="10dp"
+            android:text="🛡️ Mod"
+            android:textColor="@color/white"
+            android:textSize="11sp"
+            android:textStyle="bold" />
+
+        <!-- Close Room Button -->
+        <ImageView
+            android:id="@+id/btnCloseRoom"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_marginStart="8dp"
+            android:background="@drawable/bg_pill_badge"
+            android:contentDescription="Close Room"
+            android:padding="6dp"
+            android:src="@drawable/ic_close_x" />
+    </LinearLayout>
+
+    <!-- Subheader: Diamonds, Timer, & Marquee Notice -->
+    <LinearLayout
+        android:id="@+id/layoutSubHeader"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/layoutTopHeader"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingHorizontal="14dp"
+        android:paddingBottom="10dp">
+
+        <TextView
+            android:id="@+id/tvDiamondCounter"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_pill_badge"
+            android:paddingHorizontal="8dp"
+            android:paddingVertical="3dp"
+            android:text="💎 2.51K >"
+            android:textColor="@color/room_gold"
+            android:textSize="11sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tvRoomTimer"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="6dp"
+            android:background="@drawable/bg_pill_badge"
+            android:paddingHorizontal="8dp"
+            android:paddingVertical="3dp"
+            android:text="⏱ 00:38"
+            android:textColor="@color/text_secondary_translucent"
+            android:textSize="11sp" />
+
+        <View
+            android:layout_width="0dp"
+            android:layout_height="1dp"
+            android:layout_weight="1" />
+
+        <TextView
+            android:id="@+id/tvOfficialSettingsMarquee"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_pill_badge"
+            android:paddingHorizontal="8dp"
+            android:paddingVertical="3dp"
+            android:text="📢 অফিসিয়াল সেটিংস দে... >"
+            android:textColor="@color/text_secondary_translucent"
+            android:textSize="10sp" />
+    </LinearLayout>
+
+    <!-- Scrollable Center Area: Stage Voice Seats & Announcements -->
+    <ScrollView
+        android:id="@+id/scrollStageArea"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_above="@id/layoutBottomToolbar"
+        android:layout_below="@id/layoutSubHeader"
+        android:fillViewport="true"
+        android:scrollbars="none">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_horizontal"
+            android:orientation="vertical"
+            android:paddingHorizontal="12dp">
+
+            <!-- Featured Top Duo: Slot 1 (Queen) and Slot 2 (King) -->
+            <LinearLayout
+                android:id="@+id/layoutTopFeaturedDuo"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:gravity="center"
+                android:orientation="horizontal">
+
+                <!-- Slot 1 (Host / Queen) -->
+                <LinearLayout
+                    android:id="@+id/slotView1"
+                    android:layout_width="140dp"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_horizontal"
+                    android:orientation="vertical">
+
+                    <FrameLayout
+                        android:layout_width="84dp"
+                        android:layout_height="84dp">
+
+                        <ImageView
+                            android:layout_width=" match_parent"
+                            android:layout_height="match_parent"
+                            android:background="@drawable/bg_slot_circle"
+                            android:contentDescription="Crown Frame"
+                            android:padding="4dp"
+                            android:src="@drawable/ic_royal_crown" />
+
+                        <!-- Audio Wave Activity Indicator -->
+                        <ImageView
+                            android:id="@+id/ivWaveIndicator1"
+                            android:layout_width="22dp"
+                            android:layout_height="22dp"
+                            android:layout_gravity="bottom|end"
+                            android:background="@drawable/bg_edit_button"
+                            android:contentDescription="Speaking"
+                            android:padding="2dp"
+                            android:src="@drawable/ic_sound_wave" />
+                    </FrameLayout>
+
+                    <TextView
+                        android:id="@+id/tvSlotName1"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:text="1 Queen"
+                        android:textColor="@color/room_gold"
+                        android:textSize="12sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/tvSlotDiamond1"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/bg_pill_badge"
+                        android:paddingHorizontal="6dp"
+                        android:paddingVertical="1dp"
+                        android:text="💎 2K >"
+                        android:textColor="@color/room_gold"
+                        android:textSize="9sp" />
+                </LinearLayout>
+
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:layout_marginHorizontal="8dp"
+                    android:contentDescription="Stage Wave"
+                    android:src="@drawable/ic_sound_wave" />
+
+                <!-- Slot 2 (Co-Host / King) -->
+                <LinearLayout
+                    android:id="@+id/slotView2"
+                    android:layout_width="140dp"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_horizontal"
+                    android:orientation="vertical">
+
+                    <FrameLayout
+                        android:layout_width="84dp"
+                        android:layout_height="84dp">
+
+                        <ImageView
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:background="@drawable/bg_slot_circle"
+                            android:contentDescription="Crown Frame"
+                            android:padding="4dp"
+                            android:src="@drawable/ic_royal_crown" />
+
+                        <ImageView
+                            android:id="@+id/ivWaveIndicator2"
+                            android:layout_width="22dp"
+                            android:layout_height="22dp"
+                            android:layout_gravity="bottom|end"
+                            android:background="@drawable/bg_edit_button"
+                            android:contentDescription="Speaking"
+                            android:padding="2dp"
+                            android:src="@drawable/ic_sound_wave" />
+                    </FrameLayout>
+
+                    <TextView
+                        android:id="@+id/tvSlotName2"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:text="2 King go..."
+                        android:textColor="@color/room_gold"
+                        android:textSize="12sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/tvSlotDiamond2"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/bg_pill_badge"
+                        android:paddingHorizontal="6dp"
+                        android:paddingVertical="1dp"
+                        android:text="💎 0 >"
+                        android:textColor="@color/room_gold"
+                        android:textSize="9sp" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- Row 2 (Slots 3, 4, 5, 6) -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:gravity="center"
+                android:orientation="horizontal"
+                android:weightSum="4">
+
+                <!-- Slot 3 (Open +) -->
+                <LinearLayout
+                    android:id="@+id/slotContainer3"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:gravity="center"
+                    android:orientation="vertical">
+
+                    <ImageView
+                        android:id="@+id/ivSlotIcon3"
+                        android:layout_width="56dp"
+                        android:layout_height="56dp"
+                        android:background="@drawable/bg_slot_circle"
+                        android:contentDescription="Open Slot 3"
+                        android:padding="14dp"
+                        android:src="@drawable/ic_plus_circle" />
+
+                    <TextView
+                        android:id="@+id/tvSlotNumber3"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:text="3"
+                        android:textColor="@color/text_secondary_translucent"
+                        android:textSize="11sp" />
+                </LinearLayout>
+
+                <!-- Slot 4 (Locked Padlock) -->
+                <LinearLayout
+                    android:id="@+id/slotContainer4"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:gravity="center"
+                    android:orientation="vertical">
+
+                    <ImageView
+                        android:id="@+id/ivSlotIcon4"
+                        android:layout_width="56dp"
+                        android:layout_height="56dp"
+                        android:background="@drawable/bg_slot_locked"
+                        android:contentDescription="Locked Slot 4"
+                        android:padding="16dp"
+                        android:src="@drawable/ic_padlock" />
+
+                    <TextView
+                        android:id="@+id/tvSlotNumber4"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:text="4"
+                        android:textColor="@color/text_secondary_translucent"
+                        android:textSize="11sp" />
+                </LinearLayout>
+
+                <!-- Slot 5 (Open +) -->
+                <LinearLayout
+                    android:id="@+id/slotContainer5"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:gravity="center"
+                    android:orientation="vertical">
+
+                    <ImageView
+                        android:id="@+id/ivSlotIcon5"
+                        android:layout_width="56dp"
+                        android:layout_height="56dp"
+                        android:background="@drawable/bg_slot_circle"
+                        android:contentDescription="Open Slot 5"
+                        android:padding="14dp"
+                        android:src="@drawable/ic_plus_circle" />
+
+                    <TextView
+                        android:id="@+id/tvSlotNumber5"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:text="5"
+                        android:textColor="@color/text_secondary_translucent"
+                        android:textSize="11sp" />
+                </LinearLayout>
+
+                <!-- Slot 6 (Open +) -->
+                <LinearLayout
+                    android:id="@+id/slotContainer6"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:gravity="center"
+                    android:orientation="vertical">
+
+                    <ImageView
+                        android:id="@+id/ivSlotIcon6"
+                        android:layout_width="56dp"
+                        android:layout_height="56dp"
+                        android:background="@drawable/bg_slot_circle"
+                        android:contentDescription="Open Slot 6"
+                        android:padding="14dp"
+                        android:src="@drawable/ic_plus_circle" />
+
+                    <TextView
+                        android:id="@+id/tvSlotNumber6"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:text="6"
+                        android:textColor="@color/text_secondary_translucent"
+                        android:textSize="11sp" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- Row 3 (Slots 7, 8, 9, 10) -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:gravity="center"
+                android:orientation="horizontal"
+                android:weightSum="4">
+
+                <!-- Slot 7 (Open +) -->
+                <LinearLayout
+                    android:id="@+id/slotContainer7"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:gravity="center"
+                    android:orientation="vertical">
+
+                    <ImageView
+                        android:id="@+id/ivSlotIcon7"
+                        android:layout_width="56dp"
+                        android:layout_height="56dp"
+                        android:background="@drawable/bg_slot_circle"
+                        android:contentDescription="Open Slot 7"
+                        android:padding="14dp"
+                        android:src="@drawable/ic_plus_circle" />
+
+                    <TextView
+                        android:id="@+id/tvSlotNumber7"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:text="7"
+                        android:textColor="@color/text_secondary_translucent"
+                        android:textSize="11sp" />
+                </LinearLayout>
+
+                <!-- Slot 8 (Locked Padlock) -->
+                <LinearLayout
+                    android:id="@+id/slotContainer8"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:gravity="center"
+                    android:orientation="vertical">
+
+                    <ImageView
+                        android:id="@+id/ivSlotIcon8"
+                        android:layout_width="56dp"
+                        android:layout_height="56dp"
+                        android:background="@drawable/bg_slot_locked"
+                        android:contentDescription="Locked Slot 8"
+                        android:padding="16dp"
+                        android:src="@drawable/ic_padlock" />
+
+                    <TextView
+                        android:id="@+id/tvSlotNumber8"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:text="8"
+                        android:textColor="@color/text_secondary_translucent"
+                        android:textSize="11sp" />
+                </LinearLayout>
+
+                <!-- Slot 9 (Open +) -->
+                <LinearLayout
+                    android:id="@+id/slotContainer9"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:gravity="center"
+                    android:orientation="vertical">
+
+                    <ImageView
+                        android:id="@+id/ivSlotIcon9"
+                        android:layout_width="56dp"
+                        android:layout_height="56dp"
+                        android:background="@drawable/bg_slot_circle"
+                        android:contentDescription="Open Slot 9"
+                        android:padding="14dp"
+                        android:src="@drawable/ic_plus_circle" />
+
+                    <TextView
+                        android:id="@+id/tvSlotNumber9"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:text="9"
+                        android:textColor="@color/text_secondary_translucent"
+                        android:textSize="11sp" />
+                </LinearLayout>
+
+                <!-- Slot 10 (Locked Padlock) -->
+                <LinearLayout
+                    android:id="@+id/slotContainer10"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:gravity="center"
+                    android:orientation="vertical">
+
+                    <ImageView
+                        android:id="@+id/ivSlotIcon10"
+                        android:layout_width="56dp"
+                        android:layout_height="56dp"
+                        android:background="@drawable/bg_slot_locked"
+                        android:contentDescription="Locked Slot 10"
+                        android:padding="16dp"
+                        android:src="@drawable/ic_padlock" />
+
+                    <TextView
+                        android:id="@+id/tvSlotNumber10"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:text="10"
+                        android:textColor="@color/text_secondary_translucent"
+                        android:textSize="11sp" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- Announcement Card -->
+            <RelativeLayout
+                android:id="@+id/cardAnnouncement"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:background="@drawable/bg_announcement_card"
+                android:padding="12dp">
+
+                <TextView
+                    android:id="@+id/tvAnnouncementHeader"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/room_announcement_header"
+                    android:textColor="@color/room_neon_orange"
+                    android:textSize="12sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/tvAnnouncementBody"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@id/tvAnnouncementHeader"
+                    android:layout_marginTop="4dp"
+                    android:layout_toStartOf="@id/btnEditAnnouncement"
+                    android:text="~~~@-@@@~@-@~#~~"
+                    android:textColor="@color/white"
+                    android:textSize="13sp" />
+
+                <Button
+                    android:id="@+id/btnEditAnnouncement"
+                    android:layout_width="wrap_content"
+                    android:layout_height="32dp"
+                    android:layout_alignParentEnd="true"
+                    android:layout_centerVertical="true"
+                    android:background="@drawable/bg_edit_button"
+                    android:minWidth="60dp"
+                    android:text="@string/action_edit"
+                    android:textAllCaps="false"
+                    android:textColor="@color/white"
+                    android:textSize="12sp" />
+            </RelativeLayout>
+
+            <!-- Live Chat Message Pills Container -->
+            <LinearLayout
+                android:id="@+id/layoutChatLog"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/tvChatNotice1"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/bg_pill_badge"
+                    android:paddingHorizontal="10dp"
+                    android:paddingVertical="5dp"
+                    android:text="The owner @raihan entered the room"
+                    android:textColor="#E0E0E0"
+                    android:textSize="12sp" />
+
+                <TextView
+                    android:id="@+id/tvChatNotice2"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:background="@drawable/bg_pill_badge"
+                    android:paddingHorizontal="10dp"
+                    android:paddingVertical="5dp"
+                    android:text="Your room name has been submitted for approval. It will go live once the review."
+                    android:textColor="#C0C0C0"
+                    android:textSize="12sp" />
+            </LinearLayout>
+        </LinearLayout>
+    </ScrollView>
+
+    <!-- Bottom Action Toolbar -->
+    <LinearLayout
+        android:id="@+id/layoutBottomToolbar"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:layout_alignParentBottom="true"
+        android:background="#CC0B0912"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingHorizontal="10dp">
+
+        <!-- Hamburger Menu (Theme & Room Settings) -->
+        <ImageView
+            android:id="@+id/btnMenuSettings"
+            android:layout_width="38dp"
+            android:layout_height="38dp"
+            android:contentDescription="Room Menu"
+            android:padding="8dp"
+            android:src="@drawable/ic_hamburger_menu" />
+
+        <!-- Chat Input Field -->
+        <EditText
+            android:id="@+id/etMessageInput"
+            android:layout_width="0dp"
+            android:layout_height="38dp"
+            android:layout_marginStart="4dp"
+            android:layout_marginEnd="6dp"
+            android:layout_weight="1"
+            android:background="@drawable/bg_pill_input"
+            android:hint="@string/hint_message_here"
+            android:imeOptions="actionSend"
+            android:inputType="text"
+            android:paddingHorizontal="14dp"
+            android:textColor="@color/white"
+            android:textColorHint="@color/text_secondary_translucent"
+            android:textSize="13sp" />
+
+        <!-- Emoji / Dice Game Button -->
+        <ImageView
+            android:id="@+id/btnDiceGame"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:contentDescription="Dice Game"
+            android:padding="7dp"
+            android:src="@drawable/ic_dice_game" />
+
+        <!-- Volume / Music Speaker Button -->
+        <ImageView
+            android:id="@+id/btnMusicSpeaker"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:contentDescription="Speaker Control"
+            android:padding="7dp"
+            android:src="@drawable/ic_music_speaker" />
+
+        <!-- Mic / Hand-raise Button -->
+        <ImageView
+            android:id="@+id/btnMicHandRaise"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:contentDescription="Microphone &amp; Hand Raise"
+            android:padding="7dp"
+            android:src="@drawable/ic_mic_hand_raise" />
+
+        <!-- Gift Box Button (Opens Gift Bottom Sheet) -->
+        <ImageView
+            android:id="@+id/btnGiftBox"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:contentDescription="Gifts"
+            android:padding="5dp"
+            android:src="@drawable/ic_gift_box" />
+
+        <!-- Theme Picker Quick Button -->
+        <TextView
+            android:id="@+id/btnThemeStore"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:gravity="center"
+            android:text="🎨"
+            android:textSize="18sp" />
+    </LinearLayout>
+
+</RelativeLayout>

@@ -1,0 +1,6 @@
+{
+  "name": "NOICE LIVE",
+  "description": "NOICE LIVE - Social voice chatrooms, live streaming, interactive games, and creator community.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

@@ -1,0 +1,17 @@
+<resources>
+    <string name="app_name">NOICE LIVE</string>
+    <string name="room_title_default">Zoma Team</string>
+    <string name="room_announcement_header">Announcement :</string>
+    <string name="room_announcement_default">Welcome to official supercar voice stage! Respect host and listeners.</string>
+    <string name="action_edit">Edit</string>
+    <string name="hint_message_here">Message here</string>
+    <string name="gift_coin_title">Gift Coin</string>
+    <string name="select_theme_title">Select your theme</string>
+    <string name="tab_gallery">Gallery</string>
+    <string name="tab_premium">Premium</string>
+    <string name="tab_customize">Customize</string>
+    <string name="action_purchase">Purchase</string>
+    <string name="action_save">Save</string>
+    <string name="action_top_up">Top Up</string>
+    <string name="permission_audio_rationale">NOICE LIVE requires microphone access so you can speak live in the voice slot.</string>
+</resources>

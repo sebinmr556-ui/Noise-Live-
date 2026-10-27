@@ -1,0 +1,118 @@
+{
+  "entities": {
+    "user": {
+      "title": "UserProfile",
+      "description": "User profile with authentication, permanent unique numeric ID, wallet, VIP status, and progression levels",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "description": "Firebase Auth UID" },
+        "numericId": { "type": "string", "description": "Unique permanent 7-digit public User ID" },
+        "username": { "type": "string", "description": "Display username" },
+        "fullName": { "type": "string", "description": "User's full name" },
+        "avatarUrl": { "type": "string", "description": "Profile picture URL" },
+        "bio": { "type": "string", "description": "User bio text" },
+        "coinBalance": { "type": "integer", "description": "Available virtual coin balance" },
+        "wealthPoints": { "type": "integer", "description": "Total lifetime coin spend points" },
+        "wealthLevel": { "type": "integer", "description": "Calculated wealth level 1-50" },
+        "charmPoints": { "type": "integer", "description": "Total gift charm received points" },
+        "charmLevel": { "type": "integer", "description": "Calculated charm level 1-50" },
+        "userXp": { "type": "integer", "description": "Experience points from app activity" },
+        "userLevel": { "type": "integer", "description": "User level 1-100" },
+        "vipTierLevel": { "type": "integer", "description": "Active VIP level 0-10" },
+        "vipExpiry": { "type": "string", "description": "VIP expiration timestamp" },
+        "isAdmin": { "type": "boolean", "description": "Whether user is room administrator" },
+        "isSuperAdmin": { "type": "boolean", "description": "Whether user is platform super administrator" },
+        "createdAt": { "type": "string", "description": "Account registration timestamp" }
+      },
+      "required": ["uid", "numericId", "username"]
+    },
+    "post": {
+      "title": "FeedPost",
+      "description": "Feed media post created by user",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique post ID" },
+        "userId": { "type": "string", "description": "Creator UID" },
+        "username": { "type": "string", "description": "Creator username" },
+        "userAvatar": { "type": "string", "description": "Creator avatar" },
+        "imageUrl": { "type": "string", "description": "Photo URL" },
+        "caption": { "type": "string", "description": "Post caption" },
+        "likesCount": { "type": "integer", "description": "Count of likes" },
+        "commentsCount": { "type": "integer", "description": "Count of comments" },
+        "timestamp": { "type": "string", "description": "ISO timestamp" }
+      },
+      "required": ["id", "userId", "imageUrl"]
+    },
+    "comment": {
+      "title": "PostComment",
+      "description": "Comment left on a post",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique comment ID" },
+        "postId": { "type": "string", "description": "Parent post ID" },
+        "userId": { "type": "string", "description": "Commenter UID" },
+        "username": { "type": "string", "description": "Commenter username" },
+        "userAvatar": { "type": "string", "description": "Commenter avatar" },
+        "text": { "type": "string", "description": "Comment text" },
+        "timestamp": { "type": "string", "description": "Timestamp" }
+      },
+      "required": ["id", "postId", "userId", "text"]
+    },
+    "coinTransaction": {
+      "title": "CoinLedgerEntry",
+      "description": "Immutable ledger record for coin wallet purchases, gifts, and adjustments",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique transaction ID" },
+        "userId": { "type": "string", "description": "User UID" },
+        "numericId": { "type": "string", "description": "User numeric ID" },
+        "type": { "type": "string", "description": "Transaction type" },
+        "amount": { "type": "integer", "description": "Coin delta amount" },
+        "balanceBefore": { "type": "integer", "description": "Balance before transaction" },
+        "balanceAfter": { "type": "integer", "description": "Balance after transaction" },
+        "timestamp": { "type": "string", "description": "Timestamp" },
+        "metadata": { "type": "string", "description": "Transaction details or receipt reference" }
+      },
+      "required": ["id", "userId", "type", "amount"]
+    },
+    "voiceRoom": {
+      "title": "VoiceRoom",
+      "description": "LiveKit voice chatroom metadata",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Room ID string" },
+        "numericId": { "type": "string", "description": "6-digit room ID" },
+        "title": { "type": "string", "description": "Room title" },
+        "hostId": { "type": "string", "description": "Host UID" },
+        "hostName": { "type": "string", "description": "Host name" },
+        "category": { "type": "string", "description": "Room category" },
+        "totalSlots": { "type": "integer", "description": "Number of stage seats" },
+        "isPrivate": { "type": "boolean", "description": "Password protected flag" },
+        "createdAt": { "type": "string", "description": "Created timestamp" }
+      },
+      "required": ["id", "numericId", "title", "hostId"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "user" },
+      "description": "User profiles and wallet state"
+    },
+    "/posts/{postId}": {
+      "schema": { "$ref": "post" },
+      "description": "Feed media posts"
+    },
+    "/posts/{postId}/comments/{commentId}": {
+      "schema": { "$ref": "comment" },
+      "description": "Post comments"
+    },
+    "/transactions/{transactionId}": {
+      "schema": { "$ref": "coinTransaction" },
+      "description": "Audit-logged financial coin ledger"
+    },
+    "/rooms/{roomId}": {
+      "schema": { "$ref": "voiceRoom" },
+      "description": "Voice chatrooms"
+    }
+  }
+}
