@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "181495749391",
+    "project_id": "noise-live",
+    "storage_bucket": "noise-live.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:181495749391:android:3cb73aa3a936414ba6bc7a",
+        "android_client_info": {
+          "package_name": "com.aistudio.noise.snvxrk"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBP2hzaXSW4CpdzcdFKiw6mKkdICSjH1Lk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
