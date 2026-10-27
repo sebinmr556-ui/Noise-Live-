@@ -61,7 +61,8 @@ data class LiveKitTokenResponse(
 class LiveKitManager(
     private val coroutineScope: CoroutineScope,
     private val defaultGatewayUrl: String = "https://api.noice.live/livekit/token",
-    private val defaultLiveKitWsUrl: String = "wss://live.noice.live"
+    private val defaultLiveKitWsUrl: String = "wss://noise-5ujl4rv1.livekit.cloud
+"
 ) {
     companion object {
         private const val TAG = "LiveKitManager"
