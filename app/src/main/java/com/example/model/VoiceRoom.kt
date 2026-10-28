@@ -29,13 +29,47 @@ enum class RoomCategory(val displayName: String, val icon: String) {
     REGIONAL("Global & Regional", "🌍")
 }
 
-enum class RoomBackground(val displayName: String, val primaryColorHex: String, val secondaryColorHex: String) {
-    DEFAULT_DARK("Velvet Night", "#121218", "#0A0A0F"),
-    LUXURY_PALACE("Royal Palace", "#2C1226", "#140712"),
-    CYBER_NEON("Cyberpunk Neon", "#0B1D3A", "#060E1D"),
-    SUNSET_LOUNGE("Sunset Oasis", "#38171E", "#18080C"),
-    GOLDEN_VIP("Golden Monarch", "#332408", "#140E02"),
-    RETRO_DISCO("Disco Mirage", "#200E33", "#0E0518")
+enum class RoomBackground(
+    val id: String,
+    val displayName: String,
+    val primaryColorHex: String,
+    val secondaryColorHex: String,
+    val backgroundAssetUrl: String = "",
+    val coinCost: Int = 0,
+    val isPremium: Boolean = true
+) {
+    DEFAULT_DARK(
+        id = "velvet_night",
+        displayName = "Velvet Night",
+        primaryColorHex = "#121218",
+        secondaryColorHex = "#0A0A0F",
+        coinCost = 0,
+        isPremium = false
+    ),
+    ROYAL_CAR_GOLD(
+        id = "royal_car_gold",
+        displayName = "Golden Monarch Car",
+        primaryColorHex = "#332408",
+        secondaryColorHex = "#140E02",
+        backgroundAssetUrl = "https://example.com/themes/golden_car_anim.gif",
+        coinCost = 9999
+    ),
+    LUXURY_PALACE(
+        id = "mystic_palace",
+        displayName = "Royal Palace Glow",
+        primaryColorHex = "#2C1226",
+        secondaryColorHex = "#140712",
+        backgroundAssetUrl = "https://example.com/themes/palace_anim.gif",
+        coinCost = 5000
+    ),
+    CYBER_NEON(
+        id = "cyber_neon",
+        displayName = "Cyberpunk Neon 3D",
+        primaryColorHex = "#0B1D3A",
+        secondaryColorHex = "#060E1D",
+        backgroundAssetUrl = "https://example.com/themes/cyber_neon_anim.gif",
+        coinCost = 3000
+    )
 }
 
 enum class WebRtcConnectionState(val label: String) {
@@ -44,6 +78,15 @@ enum class WebRtcConnectionState(val label: String) {
     CONNECTED("Connected (LiveKit WebRTC Low-Latency)"),
     RECONNECTING("Reconnecting WebRTC Session...")
 }
+
+// Ultra Luxury Audio Visualizer & Animation Config
+data class AudioVisualizerState(
+    val isAnimating: Boolean = true,
+    val waveIntensity: Float = 0.85f,
+    val primaryGlowColor: String = "#FF2D55",
+    val secondaryGlowColor: String = "#FFD700",
+    val particleEffectName: String = "Gold_Sparkles_And_Neon_Waves"
+)
 
 data class RoomStats(
     val bitrateKbps: Int = 96,
@@ -68,7 +111,8 @@ data class Participant(
     val audioLevel: Float = 0f,
     val handRaised: Boolean = false,
     val slotIndex: Int = -1,
-    val avatarFrame: String = ""
+    val avatarFrame: String = "",
+    val visualizerState: AudioVisualizerState = AudioVisualizerState()
 )
 
 data class SpeakerSlot(
@@ -84,7 +128,7 @@ data class RoomSettings(
     val coverUrl: String = "",
     val description: String = "",
     val announcement: String = "Welcome to our voice room! Be respectful and have fun.",
-    val seatCount: Int = 8, // 4, 6, 8, 9, 12
+    val seatCount: Int = 8,
     val category: RoomCategory = RoomCategory.TRENDING,
     val language: String = "English",
     val tags: List<String> = listOf("Chat", "Music", "Vibes"),
@@ -96,7 +140,7 @@ data class RoomSettings(
     val blockedUserIds: List<String> = emptyList(),
     val moderatorIds: List<String> = emptyList(),
     val coHostIds: List<String> = emptyList(),
-    val background: RoomBackground = RoomBackground.DEFAULT_DARK,
+    val background: RoomBackground = RoomBackground.ROYAL_CAR_GOLD,
     val soundEffectsEnabled: Boolean = true,
     val giftsEnabled: Boolean = true
 )
@@ -112,7 +156,7 @@ data class VoiceRoom(
     val hostAvatar: String,
     val coverUrl: String = "",
     val isLive: Boolean = true,
-    val isVip: Boolean = false,
+    val isVip: Boolean = true,
     val isPasswordProtected: Boolean = false,
     val createdAtText: String = "Live",
     val speakers: List<Participant> = emptyList(),
@@ -122,11 +166,11 @@ data class VoiceRoom(
     val isJoined: Boolean = false,
     val isMuted: Boolean = false,
     val isHandRaised: Boolean = false,
-    val connectionState: WebRtcConnectionState = WebRtcConnectionState.DISCONNECTED,
+    val connectionState: WebRtcConnectionState = WebRtcConnectionState.CONNECTED,
     val stats: RoomStats = RoomStats(),
     val settings: RoomSettings = RoomSettings(name = title, seatCount = totalSlots),
-    val charmPoints: Int = 1420,
-    val isFavorite: Boolean = false
+    val charmPoints: Int = 4850,
+    val isFavorite: Boolean = true
 )
 
 enum class FallaGiftCategory(val title: String) {
@@ -135,7 +179,7 @@ enum class FallaGiftCategory(val title: String) {
     PREMIUM("Premium"),
     LUXURY("Luxury"),
     VIP("VIP"),
-    ANIMATED("Animated")
+    ANIMATED("Animated Super Car")
 }
 
 data class FallaGift(
@@ -167,8 +211,8 @@ data class InRoomChatMessage(
     val roomId: String,
     val senderName: String,
     val senderAvatar: String,
-    val vipTier: VipTier = VipTier.NONE,
-    val userLevel: Int = 1,
+    val vipTier: VipTier = VipTier.CROWN_SUPREME,
+    val userLevel: Int = 99,
     val text: String,
     val isSystem: Boolean = false,
     val isGiftAnnouncement: Boolean = false
@@ -200,6 +244,6 @@ data class ModerationAction(
     val id: String,
     val moderatorName: String,
     val targetUserName: String,
-    val actionType: String, // Mute, Kick, Ban, Seat Lock
+    val actionType: String,
     val timestampText: String = "Just now"
 )
