@@ -46,29 +46,37 @@ fun GlobalRankingsBottomSheet(
     var selectedCategory by remember { mutableStateOf(0) } // 0 = Wealth, 1 = Charm, 2 = User Level
     var selectedTimeframe by remember { mutableStateOf(1) } // 0 = Daily, 1 = Weekly, 2 = All-Time
 
-    // Dynamic leaderboard entries based on real repository stats
+    // Authentic leaderboard entries (no dummy or fake accounts)
     val entries = remember(selectedCategory, selectedTimeframe, currentUser) {
-        when (selectedCategory) {
-            0 -> listOf(
-                LeaderboardEntry(1, "u_sheikh", "8120491", "Sheikh_Majid", "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200", 380000L, "Imperial Wealth", 10),
-                LeaderboardEntry(2, currentUser.id, currentUser.numericId, currentUser.username, currentUser.avatarUrl, currentUser.wealthPoints, "Lv.${currentUser.wealthLevel} Wealth", currentUser.vipTierLevel),
-                LeaderboardEntry(3, "u_layla", "8492014", "Layla_Dubai", "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200", 195000L, "Royal Wealth", 6),
-                LeaderboardEntry(4, "u_tariq", "8032918", "Tariq_VIP", "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200", 142000L, "Diamond Wealth", 5),
-                LeaderboardEntry(5, "u_noor", "8772019", "Noor_Star", "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200", 98000L, "Gold Wealth", 4)
-            )
-            1 -> listOf(
-                LeaderboardEntry(1, "u_yasmin", "8002914", "Yasmin_Soprano", "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=200", 420000L, "Superstar Charm", 8),
-                LeaderboardEntry(2, "u_amira", "8920145", "Amira_Poet", "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=200", 280000L, "Legend Charm", 7),
-                LeaderboardEntry(3, currentUser.id, currentUser.numericId, currentUser.username, currentUser.avatarUrl, currentUser.charmPoints, "Lv.${currentUser.charmLevel} Charm", currentUser.vipTierLevel),
-                LeaderboardEntry(4, "u_kareem", "8392018", "Kareem_Oud", "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=200", 112000L, "Star Charm", 4),
-                LeaderboardEntry(5, "u_salma", "8620491", "Salma_Radio", "https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?w=200", 87000L, "Sweet Charm", 3)
-            )
-            else -> listOf(
-                LeaderboardEntry(1, "u_samir", "8301948", "Samir_Dev", "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=200", 42000L, "Level 42", 5),
-                LeaderboardEntry(2, currentUser.id, currentUser.numericId, currentUser.username, currentUser.avatarUrl, currentUser.userXp, "Level ${currentUser.userLevel}", currentUser.vipTierLevel),
-                LeaderboardEntry(3, "u_hassan", "8492018", "Hassan_Lens", "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=200", 18500L, "Level 18", 3),
-                LeaderboardEntry(4, "u_mona", "8772091", "Mona_Art", "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=200", 14200L, "Level 14", 2)
-            )
+        if (!currentUser.isAuthenticated) {
+            emptyList<LeaderboardEntry>()
+        } else {
+            val score = when (selectedCategory) {
+                0 -> currentUser.wealthPoints
+                1 -> currentUser.charmPoints
+                else -> currentUser.userXp
+            }
+            if (score > 0L) {
+                val label = when (selectedCategory) {
+                    0 -> "Lv.${currentUser.wealthLevel} Wealth"
+                    1 -> "Lv.${currentUser.charmLevel} Charm"
+                    else -> "Level ${currentUser.userLevel}"
+                }
+                listOf(
+                    LeaderboardEntry(
+                        rank = 1,
+                        userId = currentUser.id,
+                        numericId = currentUser.numericId,
+                        username = currentUser.username,
+                        avatarUrl = currentUser.avatarUrl,
+                        score = score,
+                        badgeLabel = label,
+                        vipLevel = currentUser.vipTierLevel
+                    )
+                )
+            } else {
+                emptyList()
+            }
         }
     }
 

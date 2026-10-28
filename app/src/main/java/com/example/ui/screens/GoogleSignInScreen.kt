@@ -231,110 +231,103 @@ fun GoogleSignInScreen(
                     }
                 }
 
-                Spacer(modifier = Modifier.height(18.dp))
+                if (currentUser.isAuthenticated) {
+                    Spacer(modifier = Modifier.height(18.dp))
 
-                // Instagram-style "OR" Divider
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    HorizontalDivider(
-                        modifier = Modifier.weight(1f),
-                        color = Color(0xFF262626),
-                        thickness = 1.dp
-                    )
-                    Text(
-                        text = "OR",
-                        fontSize = 11.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color(0xFF8E8E8E),
-                        modifier = Modifier.padding(horizontal = 14.dp)
-                    )
-                    HorizontalDivider(
-                        modifier = Modifier.weight(1f),
-                        color = Color(0xFF262626),
-                        thickness = 1.dp
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(18.dp))
-
-                // Instagram-Style Saved Account Quick Card ("Continue as @username")
-                Surface(
-                    shape = RoundedCornerShape(10.dp),
-                    color = Color(0xFF1A1A1A),
-                    border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFF2E2E2E)),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { onContinueSavedAccount() }
-                        .testTag("continue_saved_account_card")
-                ) {
+                    // Instagram-style "OR" Divider
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp)
+                        modifier = Modifier.fillMaxWidth()
                     ) {
-                        Box(
-                            modifier = Modifier
-                                .size(44.dp)
-                                .clip(CircleShape)
-                                .border(1.5.dp, StoryGradient, CircleShape)
-                                .padding(2.dp),
-                            contentAlignment = Alignment.Center
+                        HorizontalDivider(
+                            modifier = Modifier.weight(1f),
+                            color = Color(0xFF262626),
+                            thickness = 1.dp
+                        )
+                        Text(
+                            text = "OR",
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFF8E8E8E),
+                            modifier = Modifier.padding(horizontal = 14.dp)
+                        )
+                        HorizontalDivider(
+                            modifier = Modifier.weight(1f),
+                            color = Color(0xFF262626),
+                            thickness = 1.dp
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(18.dp))
+
+                    // Saved Account Quick Card
+                    Surface(
+                        shape = RoundedCornerShape(10.dp),
+                        color = Color(0xFF1A1A1A),
+                        border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFF2E2E2E)),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { onContinueSavedAccount() }
+                            .testTag("continue_saved_account_card")
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp)
                         ) {
-                            if (currentUser.avatarUrl.isNotBlank()) {
-                                AsyncImage(
-                                    model = currentUser.avatarUrl,
-                                    contentDescription = currentUser.fullName,
-                                    contentScale = ContentScale.Crop,
-                                    modifier = Modifier
-                                        .fillMaxSize()
-                                        .clip(CircleShape)
-                                )
-                            } else {
-                                Icon(
-                                    imageVector = Icons.Default.Person,
-                                    contentDescription = null,
-                                    tint = Color.White
-                                )
+                            Box(
+                                modifier = Modifier
+                                    .size(44.dp)
+                                    .clip(CircleShape)
+                                    .border(1.5.dp, StoryGradient, CircleShape)
+                                    .padding(2.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                if (currentUser.avatarUrl.isNotBlank()) {
+                                    AsyncImage(
+                                        model = currentUser.avatarUrl,
+                                        contentDescription = currentUser.fullName,
+                                        contentScale = ContentScale.Crop,
+                                        modifier = Modifier
+                                            .fillMaxSize()
+                                            .clip(CircleShape)
+                                    )
+                                } else {
+                                    Icon(
+                                        imageVector = Icons.Default.Person,
+                                        contentDescription = null,
+                                        tint = Color.White
+                                    )
+                                }
                             }
-                        }
 
-                        Spacer(modifier = Modifier.width(12.dp))
+                            Spacer(modifier = Modifier.width(12.dp))
 
-                        Column(modifier = Modifier.weight(1f)) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
+                            Column(modifier = Modifier.weight(1f)) {
                                 Text(
                                     text = currentUser.username,
                                     fontWeight = FontWeight.Bold,
                                     fontSize = 14.sp,
                                     color = Color.White
                                 )
-                                Spacer(modifier = Modifier.width(4.dp))
-                                Icon(
-                                    imageVector = Icons.Default.CheckCircle,
-                                    contentDescription = "Verified",
-                                    tint = DarkAccent,
-                                    modifier = Modifier.size(14.dp)
+                                Text(
+                                    text = "Signed-in Session • ID: ${currentUser.numericId}",
+                                    fontSize = 11.sp,
+                                    color = Color(0xFFA8A8A8)
                                 )
                             }
-                            Text(
-                                text = "Saved Creator Session • ID: ${currentUser.numericId}",
-                                fontSize = 11.sp,
-                                color = Color(0xFFA8A8A8)
-                            )
-                        }
 
-                        Surface(
-                            shape = RoundedCornerShape(8.dp),
-                            color = DarkAccent
-                        ) {
-                            Text(
-                                text = "Log in",
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 12.sp,
-                                color = Color.White,
-                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
-                            )
+                            Surface(
+                                shape = RoundedCornerShape(8.dp),
+                                color = DarkAccent
+                            ) {
+                                Text(
+                                    text = "Continue",
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 12.sp,
+                                    color = Color.White,
+                                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+                                )
+                            }
                         }
                     }
                 }

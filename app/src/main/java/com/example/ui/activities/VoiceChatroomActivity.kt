@@ -300,11 +300,11 @@ class VoiceChatroomActivity : ComponentActivity() {
             if (isFollowing) {
                 btnFollowHost.text = "+"
                 btnFollowHost.setBackgroundResource(R.drawable.bg_edit_button)
-                Toast.makeText(this, "Unfollowed Zoma Team", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Unfollowed Host", Toast.LENGTH_SHORT).show()
             } else {
                 btnFollowHost.text = "✓"
                 btnFollowHost.setBackgroundResource(R.drawable.bg_save_gradient)
-                Toast.makeText(this, "Following Zoma Team! 🌟", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Following Host! 🌟", Toast.LENGTH_SHORT).show()
             }
         }
 

@@ -1,6 +1,6 @@
 <resources>
     <string name="app_name">NOICE LIVE</string>
-    <string name="room_title_default">Zoma Team</string>
+    <string name="room_title_default">NOICE Voice Lounge</string>
     <string name="room_announcement_header">Announcement :</string>
     <string name="room_announcement_default">Welcome to official supercar voice stage! Respect host and listeners.</string>
     <string name="action_edit">Edit</string>

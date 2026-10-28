@@ -16,9 +16,29 @@ service cloud.firestore {
       allow create: if isAuthenticated() && request.auth.uid == userId;
       allow update: if isAuthenticated() && (
         request.auth.uid == userId ||
-        request.auth.token.admin == true
+        request.auth.token.admin == true ||
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['followersCount']) ||
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['followingCount'])
       );
       allow delete: if false;
+
+      match /followers/{followerId} {
+        allow read: if true;
+        allow create, delete: if isAuthenticated() && request.auth.uid == followerId;
+      }
+
+      match /following/{followingId} {
+        allow read: if true;
+        allow create, delete: if isAuthenticated() && request.auth.uid == userId;
+      }
+    }
+
+    // Follow relationships
+    match /follows/{followId} {
+      allow read: if true;
+      allow create: if isAuthenticated() && request.resource.data.followerId == request.auth.uid;
+      allow delete: if isAuthenticated() && resource.data.followerId == request.auth.uid;
+      allow update: if false;
     }
 
     // Posts

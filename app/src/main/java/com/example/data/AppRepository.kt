@@ -31,6 +31,15 @@ class AppRepository(
     private val recommendationEngine = FeedRecommendationEngine()
     val liveKitManager = LiveKitManager(scope)
 
+    // Firebase Firestore instance
+    val firestore: FirebaseFirestore? = firestoreDb ?: run {
+        try {
+            FirebaseFirestore.getInstance()
+        } catch (e: Exception) {
+            null
+        }
+    }
+
     // Firebase Auth instance
     private val firebaseAuth: FirebaseAuth = try {
         FirebaseAuth.getInstance()
@@ -42,7 +51,7 @@ class AppRepository(
     private val _currentUser = MutableStateFlow(SampleData.currentUser)
     val currentUser: StateFlow<UserProfile> = _currentUser.asStateFlow()
 
-    private val _isUserAuthenticated = MutableStateFlow(true)
+    private val _isUserAuthenticated = MutableStateFlow(firebaseAuth.currentUser != null)
     val isUserAuthenticated: StateFlow<Boolean> = _isUserAuthenticated.asStateFlow()
 
     private val _authPromptRequest = MutableStateFlow<String?>(null)
@@ -50,6 +59,76 @@ class AppRepository(
 
     private val _followedUserIds = MutableStateFlow<Set<String>>(emptySet())
     val followedUserIds: StateFlow<Set<String>> = _followedUserIds.asStateFlow()
+
+    private val _suggestedCreators = MutableStateFlow(
+        listOf(
+            UserProfile(
+                id = "creator_elena_v",
+                numericId = "7392014",
+                username = "elena_vision",
+                fullName = "Elena Vance",
+                avatarUrl = "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&q=80",
+                bio = "Visual storyteller & digital creator 📸 Live audio host",
+                category = "Creator",
+                isVerified = true,
+                followersCount = 4820,
+                followingCount = 312,
+                postsCount = 18,
+                userLevel = 12,
+                wealthLevel = 8,
+                charmLevel = 14
+            ),
+            UserProfile(
+                id = "creator_kai_sound",
+                numericId = "8492011",
+                username = "kai_audio",
+                fullName = "Kai Sterling",
+                avatarUrl = "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&q=80",
+                bio = "Music producer • Supercar lounge resident DJ 🎧",
+                category = "Musician",
+                isVerified = true,
+                followersCount = 12500,
+                followingCount = 480,
+                postsCount = 34,
+                userLevel = 18,
+                wealthLevel = 15,
+                charmLevel = 22
+            ),
+            UserProfile(
+                id = "creator_maya_art",
+                numericId = "9102834",
+                username = "maya_craft",
+                fullName = "Maya Chen",
+                avatarUrl = "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=400&q=80",
+                bio = "Cyber aesthetic art & 3D renders ✨ Live streaming daily",
+                category = "Artist",
+                isVerified = false,
+                followersCount = 2890,
+                followingCount = 190,
+                postsCount = 12,
+                userLevel = 7,
+                wealthLevel = 5,
+                charmLevel = 9
+            ),
+            UserProfile(
+                id = "creator_zane_apex",
+                numericId = "6029481",
+                username = "zane_apex",
+                fullName = "Zane Miller",
+                avatarUrl = "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=400&q=80",
+                bio = "Motorsport & exotic car photography 🏎️ Track days",
+                category = "Automotive",
+                isVerified = true,
+                followersCount = 19400,
+                followingCount = 620,
+                postsCount = 45,
+                userLevel = 24,
+                wealthLevel = 28,
+                charmLevel = 30
+            )
+        )
+    )
+    val suggestedCreators: StateFlow<List<UserProfile>> = _suggestedCreators.asStateFlow()
 
     // Authentic Posts & Feed State
     private val _rawPosts = MutableStateFlow<List<Post>>(emptyList())
@@ -92,11 +171,137 @@ class AppRepository(
     private val _streamGifts = MutableStateFlow<List<StreamGift>>(emptyList())
     val streamGifts: StateFlow<List<StreamGift>> = _streamGifts.asStateFlow()
 
-    // Direct Messages
-    private val _conversations = MutableStateFlow(SampleData.conversations)
+    // Direct Messages & Online Presence
+    private val _myOnlinePresence = MutableStateFlow(OnlinePresenceState.ONLINE)
+    val myOnlinePresence: StateFlow<OnlinePresenceState> = _myOnlinePresence.asStateFlow()
+
+    private val defaultConversations = listOf(
+        Conversation(
+            id = "conv_elena",
+            participantId = "creator_elena_v",
+            participantName = "Elena Vance",
+            participantUsername = "elena_vision",
+            participantAvatar = "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&q=80",
+            isOnline = true,
+            presenceState = OnlinePresenceState.ONLINE,
+            lastActiveText = "Active now",
+            lastMessageText = "🎤 Voice message (0:08)",
+            lastMessageTimestamp = "2m",
+            unreadCount = 1
+        ),
+        Conversation(
+            id = "conv_kai",
+            participantId = "creator_kai_sound",
+            participantName = "Kai Sterling",
+            participantUsername = "kai_audio",
+            participantAvatar = "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&q=80",
+            isOnline = true,
+            presenceState = OnlinePresenceState.ONLINE,
+            lastActiveText = "Active now",
+            lastMessageText = "The supercar audio stage was insane tonight! 🎧",
+            lastMessageTimestamp = "14m",
+            unreadCount = 0
+        ),
+        Conversation(
+            id = "conv_maya",
+            participantId = "creator_maya_art",
+            participantName = "Maya Chen",
+            participantUsername = "maya_craft",
+            participantAvatar = "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=400&q=80",
+            isOnline = false,
+            presenceState = OnlinePresenceState.AWAY,
+            lastActiveText = "Active 18m ago",
+            lastMessageText = "Sent you the 3D render preview ✨",
+            lastMessageTimestamp = "1h",
+            unreadCount = 0
+        ),
+        Conversation(
+            id = "conv_zane",
+            participantId = "creator_zane_apex",
+            participantName = "Zane Miller",
+            participantUsername = "zane_apex",
+            participantAvatar = "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=400&q=80",
+            isOnline = false,
+            presenceState = OnlinePresenceState.OFFLINE,
+            lastActiveText = "Active 3h ago",
+            lastMessageText = "Next track day photoshoot is this Sunday 🏎️",
+            lastMessageTimestamp = "3h",
+            unreadCount = 0
+        )
+    )
+
+    private val defaultInitialMessages = mapOf(
+        "conv_elena" to listOf(
+            ChatMessage(
+                id = "msg_e_1",
+                conversationId = "conv_elena",
+                senderId = "creator_elena_v",
+                senderName = "Elena Vance",
+                senderAvatar = "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&q=80",
+                text = "Hey! Loved the energy in the live supercar chatroom earlier! 🔥",
+                timestampText = "10:14 AM",
+                isMine = false,
+                isRead = true
+            ),
+            ChatMessage(
+                id = "msg_e_2",
+                conversationId = "conv_elena",
+                senderId = "user_guest",
+                senderName = "Me",
+                senderAvatar = "",
+                text = "Thanks Elena! The sound stage and background theme were awesome.",
+                timestampText = "10:16 AM",
+                isMine = true,
+                isRead = true
+            ),
+            ChatMessage(
+                id = "msg_e_3",
+                conversationId = "conv_elena",
+                senderId = "creator_elena_v",
+                senderName = "Elena Vance",
+                senderAvatar = "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&q=80",
+                text = "Voice message",
+                timestampText = "10:18 AM",
+                isMine = false,
+                isRead = false,
+                messageType = MessageType.VOICE_NOTE,
+                voiceDurationSec = 8,
+                voiceAmplitudes = listOf(0.4f, 0.7f, 0.9f, 0.6f, 0.8f, 0.5f, 0.9f, 0.7f, 0.4f, 0.6f, 0.8f, 0.5f)
+            )
+        ),
+        "conv_kai" to listOf(
+            ChatMessage(
+                id = "msg_k_1",
+                conversationId = "conv_kai",
+                senderId = "creator_kai_sound",
+                senderName = "Kai Sterling",
+                senderAvatar = "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&q=80",
+                text = "The supercar audio stage was insane tonight! 🎧",
+                timestampText = "Yesterday",
+                isMine = false,
+                isRead = true
+            ),
+            ChatMessage(
+                id = "msg_k_2",
+                conversationId = "conv_kai",
+                senderId = "creator_kai_sound",
+                senderName = "Kai Sterling",
+                senderAvatar = "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&q=80",
+                text = "Audio clip",
+                timestampText = "Yesterday",
+                isMine = false,
+                isRead = true,
+                messageType = MessageType.VOICE_NOTE,
+                voiceDurationSec = 14,
+                voiceAmplitudes = listOf(0.5f, 0.8f, 0.95f, 0.7f, 0.85f, 0.6f, 0.9f, 0.75f, 0.65f, 0.8f, 0.4f, 0.7f, 0.9f, 0.5f)
+            )
+        )
+    )
+
+    private val _conversations = MutableStateFlow(defaultConversations)
     val conversations: StateFlow<List<Conversation>> = _conversations.asStateFlow()
 
-    private val _chatMessages = MutableStateFlow(SampleData.initialMessages)
+    private val _chatMessages = MutableStateFlow(defaultInitialMessages)
     val chatMessages: StateFlow<Map<String, List<ChatMessage>>> = _chatMessages.asStateFlow()
 
     // -------------------------------------------------------------
@@ -114,21 +319,7 @@ class AppRepository(
     )
     val coinPackages: StateFlow<List<CoinPackage>> = _coinPackages.asStateFlow()
 
-    private val _coinLedger = MutableStateFlow(
-        listOf(
-            CoinLedgerTransaction(
-                id = "tx_init_1",
-                userId = "user_me",
-                numericId = "8294102",
-                type = LedgerTransactionType.PROMOTIONAL_BONUS,
-                amount = 15000L,
-                balanceBefore = 0L,
-                balanceAfter = 15000L,
-                timestamp = System.currentTimeMillis() - 86400000L,
-                metadata = "Welcome creator reward & verified account grant"
-            )
-        )
-    )
+    private val _coinLedger = MutableStateFlow<List<CoinLedgerTransaction>>(emptyList())
     val coinLedger: StateFlow<List<CoinLedgerTransaction>> = _coinLedger.asStateFlow()
 
     private val _vipTiers = MutableStateFlow(VipTierConfig.ALL_TIERS)
@@ -203,9 +394,158 @@ class AppRepository(
                     isAuthenticated = true
                 )
                 _currentUser.value = updated
+                startUserFirestoreSync(user.uid, user.displayName, user.photoUrl?.toString())
             }
         }
+        setupFirestorePostsListener()
         refreshFeed()
+    }
+
+    private fun startUserFirestoreSync(uid: String, displayName: String?, photoUrl: String?) {
+        val db = firestore ?: return
+        val userRef = db.collection("users").document(uid)
+
+        userRef.addSnapshotListener { snapshot, error ->
+            if (error != null) return@addSnapshotListener
+            if (snapshot != null && snapshot.exists()) {
+                val cur = _currentUser.value
+                val bio = snapshot.getString("bio") ?: cur.bio
+                val avatarUrl = snapshot.getString("avatarUrl") ?: cur.avatarUrl
+                val fullName = snapshot.getString("fullName") ?: cur.fullName
+                val username = snapshot.getString("username") ?: cur.username
+                val website = snapshot.getString("website") ?: cur.website
+                val numericId = snapshot.getString("numericId") ?: cur.numericId
+                val bannerAccent = snapshot.getString("bannerAccentColorHex") ?: cur.bannerAccentColorHex
+                val coinBalance = snapshot.getLong("coinBalance") ?: cur.coinBalance
+                val postsCount = snapshot.getLong("postsCount")?.toInt() ?: cur.postsCount
+                val followersCount = snapshot.getLong("followersCount")?.toInt() ?: cur.followersCount
+                val followingCount = snapshot.getLong("followingCount")?.toInt() ?: cur.followingCount
+
+                _currentUser.value = cur.copy(
+                    id = uid,
+                    bio = bio,
+                    avatarUrl = avatarUrl,
+                    fullName = fullName,
+                    username = username,
+                    website = website,
+                    numericId = numericId,
+                    bannerAccentColorHex = bannerAccent,
+                    coinBalance = coinBalance,
+                    postsCount = postsCount,
+                    followersCount = followersCount,
+                    followingCount = followingCount,
+                    isAuthenticated = true
+                )
+            } else if (snapshot != null && !snapshot.exists()) {
+                val initialNumericId = (1000000 + (Math.abs(uid.hashCode()) % 9000000)).toString()
+                val initialUsername = (displayName?.replace("\\s+".toRegex(), "_")?.lowercase()
+                    ?: "user_${uid.take(6)}")
+                val initialData = hashMapOf<String, Any>(
+                    "uid" to uid,
+                    "numericId" to initialNumericId,
+                    "username" to initialUsername,
+                    "fullName" to (displayName ?: "NOICE Creator"),
+                    "avatarUrl" to (photoUrl ?: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&q=80"),
+                    "bio" to "Living life in high definition ✨ | NOICE LIVE Creator 🎤",
+                    "website" to "",
+                    "postsCount" to 0,
+                    "followersCount" to 0,
+                    "followingCount" to 0,
+                    "bannerAccentColorHex" to "#DC2743",
+                    "coinBalance" to 0L,
+                    "wealthLevel" to 1,
+                    "charmLevel" to 1,
+                    "userLevel" to 1,
+                    "vipTierLevel" to 0,
+                    "isAdmin" to false,
+                    "createdAt" to System.currentTimeMillis()
+                )
+                userRef.set(initialData)
+            }
+        }
+
+        setupFirestoreFollowsListener(uid)
+        setupFirestoreFollowersListener(uid)
+    }
+
+    private fun setupFirestoreFollowsListener(uid: String) {
+        val db = firestore ?: return
+        db.collection("follows")
+            .whereEqualTo("followerId", uid)
+            .addSnapshotListener { snapshot, error ->
+                if (error != null || snapshot == null) return@addSnapshotListener
+                val followedIds = snapshot.documents.mapNotNull { it.getString("followingId") }.toSet()
+                _followedUserIds.value = followedIds
+                _currentUser.value = _currentUser.value.copy(followingCount = followedIds.size)
+            }
+    }
+
+    private fun setupFirestoreFollowersListener(uid: String) {
+        val db = firestore ?: return
+        db.collection("follows")
+            .whereEqualTo("followingId", uid)
+            .addSnapshotListener { snapshot, error ->
+                if (error != null || snapshot == null) return@addSnapshotListener
+                val count = snapshot.size()
+                _currentUser.value = _currentUser.value.copy(followersCount = count)
+            }
+    }
+
+    private fun setupFirestorePostsListener() {
+        val db = firestore ?: return
+        db.collection("posts")
+            .orderBy("timestamp", com.google.firebase.firestore.Query.Direction.DESCENDING)
+            .addSnapshotListener { snapshot, error ->
+                if (error != null || snapshot == null) return@addSnapshotListener
+                val firestorePosts = snapshot.documents.mapNotNull { doc ->
+                    val id = doc.getString("id") ?: doc.id
+                    val userId = doc.getString("userId") ?: return@mapNotNull null
+                    val imageUrl = doc.getString("imageUrl") ?: return@mapNotNull null
+                    val caption = doc.getString("caption") ?: ""
+                    val username = doc.getString("username") ?: "Creator"
+                    val userAvatar = doc.getString("userAvatar") ?: ""
+                    val location = doc.getString("location") ?: ""
+                    val likesCount = doc.getLong("likesCount")?.toInt() ?: 0
+                    val commentsCount = doc.getLong("commentsCount")?.toInt() ?: 0
+                    val timestamp = doc.getLong("timestamp") ?: System.currentTimeMillis()
+                    val tags = (doc.get("tags") as? List<*>)?.filterIsInstance<String>() ?: emptyList()
+                    val filterName = doc.getString("filterApplied") ?: PhotoFilter.NORMAL.name
+                    val filter = try { PhotoFilter.valueOf(filterName) } catch (e: Exception) { PhotoFilter.NORMAL }
+
+                    Post(
+                        id = id,
+                        userId = userId,
+                        username = username,
+                        userAvatar = userAvatar,
+                        imageUrl = imageUrl,
+                        caption = caption,
+                        location = location,
+                        likesCount = likesCount,
+                        commentsCount = commentsCount,
+                        timestampMillis = timestamp,
+                        timestampText = formatTimestamp(timestamp),
+                        tags = tags,
+                        filterApplied = filter,
+                        isLiked = _userLikedPostIds.value.contains(id),
+                        isBookmarked = _userBookmarkedPostIds.value.contains(id)
+                    )
+                }
+                if (firestorePosts.isNotEmpty()) {
+                    _rawPosts.value = firestorePosts
+                    refreshFeed()
+                }
+            }
+    }
+
+    private fun formatTimestamp(millis: Long): String {
+        val diff = System.currentTimeMillis() - millis
+        val minutes = diff / (60 * 1000)
+        return when {
+            minutes < 1 -> "Just now"
+            minutes < 60 -> "${minutes}m ago"
+            minutes < 1440 -> "${minutes / 60}h ago"
+            else -> "${minutes / 1440}d ago"
+        }
     }
 
     // -------------------------------------------------------------
@@ -236,6 +576,7 @@ class AppRepository(
                             )
                             _currentUser.value = newUser
                             _isUserAuthenticated.value = true
+                            startUserFirestoreSync(firebaseUser.uid, firebaseUser.displayName, firebaseUser.photoUrl?.toString())
                             clearAuthPrompt()
                             onComplete(true, null)
                         } else {
@@ -568,6 +909,7 @@ class AppRepository(
             likesCount = 0,
             commentsCount = 0,
             timestampText = "Just now",
+            timestampMillis = System.currentTimeMillis(),
             tags = tags,
             isVerified = _currentUser.value.isVerified
         )
@@ -575,6 +917,31 @@ class AppRepository(
         _currentUser.value = _currentUser.value.copy(postsCount = _currentUser.value.postsCount + 1)
         awardUserXp(150, "Created new post")
         refreshFeed()
+
+        // Persist post document to Firebase Firestore
+        val postMap = hashMapOf<String, Any>(
+            "id" to newPost.id,
+            "userId" to newPost.userId,
+            "username" to newPost.username,
+            "userAvatar" to newPost.userAvatar,
+            "imageUrl" to newPost.imageUrl,
+            "caption" to newPost.caption,
+            "location" to newPost.location,
+            "likesCount" to 0,
+            "commentsCount" to 0,
+            "tags" to tags,
+            "timestamp" to newPost.timestampMillis
+        )
+        firestore?.collection("posts")?.document(newPost.id)?.set(postMap)
+
+        // Increment user postsCount in Firestore
+        val uid = _currentUser.value.id
+        if (uid.isNotBlank() && uid != "user_guest") {
+            firestore?.collection("users")?.document(uid)?.set(
+                mapOf("postsCount" to _currentUser.value.postsCount),
+                com.google.firebase.firestore.SetOptions.merge()
+            )
+        }
         return true
     }
 
@@ -596,15 +963,94 @@ class AppRepository(
         return true
     }
 
-    fun toggleFollow(userId: String): Boolean {
+    fun toggleFollow(
+        userId: String,
+        targetUsername: String = "",
+        targetAvatar: String = ""
+    ): Boolean {
         if (!_isUserAuthenticated.value) {
             triggerAuthPrompt("follow creators")
             return false
         }
-        val current = _followedUserIds.value
-        val isFollowing = current.contains(userId)
-        _followedUserIds.value = if (isFollowing) current - userId else current + userId
+        val currentUserId = _currentUser.value.id
+        if (userId == currentUserId || userId.isBlank()) return false
+
+        val currentFollowed = _followedUserIds.value
+        val isFollowing = currentFollowed.contains(userId)
+        val newFollowed = if (isFollowing) currentFollowed - userId else currentFollowed + userId
+        _followedUserIds.value = newFollowed
+
+        // Immediately update local following count on current user profile
+        val curUser = _currentUser.value
+        val updatedFollowingCount = if (isFollowing) maxOf(0, curUser.followingCount - 1) else curUser.followingCount + 1
+        _currentUser.value = curUser.copy(followingCount = updatedFollowingCount)
+
+        // Update suggested creators local follower counts
+        _suggestedCreators.value = _suggestedCreators.value.map { creator ->
+            if (creator.id == userId) {
+                val newCount = if (isFollowing) maxOf(0, creator.followersCount - 1) else creator.followersCount + 1
+                creator.copy(followersCount = newCount, isFollowing = !isFollowing)
+            } else creator
+        }
+
         refreshFeed()
+
+        // Sync with Firebase Firestore
+        val db = firestore
+        if (db != null && currentUserId.isNotBlank() && currentUserId != "user_guest") {
+            val followDocId = "${currentUserId}_${userId}"
+            val followRef = db.collection("follows").document(followDocId)
+            val curUserRef = db.collection("users").document(currentUserId)
+            val targetUserRef = db.collection("users").document(userId)
+
+            if (!isFollowing) {
+                // Follow action
+                val followMap = hashMapOf<String, Any>(
+                    "id" to followDocId,
+                    "followerId" to currentUserId,
+                    "followingId" to userId,
+                    "followerUsername" to _currentUser.value.username,
+                    "followerAvatar" to _currentUser.value.avatarUrl,
+                    "targetUsername" to targetUsername,
+                    "targetAvatar" to targetAvatar,
+                    "timestamp" to System.currentTimeMillis()
+                )
+                followRef.set(followMap)
+
+                // Subcollections
+                curUserRef.collection("following").document(userId)
+                    .set(mapOf("userId" to userId, "timestamp" to System.currentTimeMillis()))
+                targetUserRef.collection("followers").document(currentUserId)
+                    .set(mapOf("userId" to currentUserId, "timestamp" to System.currentTimeMillis()))
+
+                // Atomic count increments in Firestore
+                curUserRef.set(
+                    mapOf("followingCount" to com.google.firebase.firestore.FieldValue.increment(1)),
+                    com.google.firebase.firestore.SetOptions.merge()
+                )
+                targetUserRef.set(
+                    mapOf("followersCount" to com.google.firebase.firestore.FieldValue.increment(1)),
+                    com.google.firebase.firestore.SetOptions.merge()
+                )
+            } else {
+                // Unfollow action
+                followRef.delete()
+
+                // Subcollections
+                curUserRef.collection("following").document(userId).delete()
+                targetUserRef.collection("followers").document(currentUserId).delete()
+
+                // Atomic count decrements in Firestore
+                curUserRef.set(
+                    mapOf("followingCount" to com.google.firebase.firestore.FieldValue.increment(-1)),
+                    com.google.firebase.firestore.SetOptions.merge()
+                )
+                targetUserRef.set(
+                    mapOf("followersCount" to com.google.firebase.firestore.FieldValue.increment(-1)),
+                    com.google.firebase.firestore.SetOptions.merge()
+                )
+            }
+        }
         return true
     }
 
@@ -624,6 +1070,24 @@ class AppRepository(
             avatarUrl = avatarUrl,
             bannerAccentColorHex = bannerAccentHex
         )
+
+        // Persist to Firebase Firestore
+        val uid = firebaseAuth.currentUser?.uid ?: _currentUser.value.id
+        if (uid.isNotBlank() && uid != "user_guest") {
+            val userUpdates = hashMapOf<String, Any>(
+                "username" to username,
+                "fullName" to fullName,
+                "bio" to bio,
+                "website" to website,
+                "avatarUrl" to avatarUrl,
+                "bannerAccentColorHex" to bannerAccentHex,
+                "updatedAt" to System.currentTimeMillis()
+            )
+            firestore?.collection("users")?.document(uid)?.set(
+                userUpdates,
+                com.google.firebase.firestore.SetOptions.merge()
+            )
+        }
     }
 
     // -------------------------------------------------------------
@@ -992,7 +1456,38 @@ class AppRepository(
         _notifications.value = list
     }
 
+    fun setMyOnlinePresence(state: OnlinePresenceState) {
+        _myOnlinePresence.value = state
+    }
+
     // Direct Messages
+    fun startOrGetConversation(user: UserProfile): Conversation {
+        val existing = _conversations.value.find { it.participantId == user.id }
+        if (existing != null) return existing
+
+        val newConv = Conversation(
+            id = "conv_${user.id}",
+            participantId = user.id,
+            participantName = user.fullName,
+            participantUsername = user.username,
+            participantAvatar = user.avatarUrl.ifEmpty { "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&q=80" },
+            isOnline = true,
+            presenceState = OnlinePresenceState.ONLINE,
+            lastActiveText = "Active now",
+            lastMessageText = "Started a conversation",
+            lastMessageTimestamp = "Just now",
+            unreadCount = 0
+        )
+        _conversations.value = listOf(newConv) + _conversations.value
+        return newConv
+    }
+
+    fun markConversationAsRead(conversationId: String) {
+        _conversations.value = _conversations.value.map { conv ->
+            if (conv.id == conversationId) conv.copy(unreadCount = 0) else conv
+        }
+    }
+
     fun sendDirectMessage(recipientId: String, text: String): Boolean {
         return sendTextMessage(recipientId, text)
     }
@@ -1021,15 +1516,24 @@ class AppRepository(
         thread.add(newMsg)
         current[conversationId] = thread
         _chatMessages.value = current
+
+        // Update conversation summary and bring to top
+        updateConversationSummary(conversationId, text.trim())
         awardUserXp(15, "Direct message sent")
         return true
     }
 
-    fun sendVoiceNote(conversationId: String, durationSec: Int, amplitudes: List<Float>): Boolean {
+    fun sendVoiceNote(
+        conversationId: String,
+        durationSec: Int,
+        amplitudes: List<Float>,
+        audioFilePath: String? = null
+    ): Boolean {
         if (!_isUserAuthenticated.value) {
             triggerAuthPrompt("send voice messages")
             return false
         }
+        val durationDisplay = "0:${durationSec.toString().padStart(2, '0')}"
         val newMsg = ChatMessage(
             id = "m_${UUID.randomUUID()}",
             conversationId = conversationId,
@@ -1043,15 +1547,62 @@ class AppRepository(
             isRead = true,
             messageType = MessageType.VOICE_NOTE,
             voiceDurationSec = durationSec,
-            voiceAmplitudes = amplitudes
+            voiceAmplitudes = amplitudes,
+            audioFilePath = audioFilePath
         )
         val current = _chatMessages.value.toMutableMap()
         val thread = (current[conversationId] ?: emptyList()).toMutableList()
         thread.add(newMsg)
         current[conversationId] = thread
         _chatMessages.value = current
+
+        updateConversationSummary(conversationId, "🎤 Voice message ($durationDisplay)")
         awardUserXp(20, "Voice note sent")
         return true
+    }
+
+    fun sendPhotoMessage(conversationId: String, photoUrl: String, caption: String = ""): Boolean {
+        if (!_isUserAuthenticated.value) {
+            triggerAuthPrompt("send photos")
+            return false
+        }
+        val newMsg = ChatMessage(
+            id = "m_${UUID.randomUUID()}",
+            conversationId = conversationId,
+            senderId = _currentUser.value.id,
+            senderName = _currentUser.value.fullName,
+            senderAvatar = _currentUser.value.avatarUrl,
+            text = caption.ifEmpty { "Sent a photo" },
+            photoUrl = photoUrl,
+            timestampText = "Just now",
+            timestampMillis = System.currentTimeMillis(),
+            isMine = true,
+            isRead = true,
+            messageType = MessageType.PHOTO
+        )
+        val current = _chatMessages.value.toMutableMap()
+        val thread = (current[conversationId] ?: emptyList()).toMutableList()
+        thread.add(newMsg)
+        current[conversationId] = thread
+        _chatMessages.value = current
+
+        updateConversationSummary(conversationId, "📸 Photo")
+        awardUserXp(15, "Photo sent")
+        return true
+    }
+
+    private fun updateConversationSummary(conversationId: String, lastText: String) {
+        val convList = _conversations.value.toMutableList()
+        val idx = convList.indexOfFirst { it.id == conversationId }
+        if (idx >= 0) {
+            val updated = convList.removeAt(idx).copy(
+                lastMessageText = lastText,
+                lastMessageTimestamp = "Just now",
+                unreadCount = 0
+            )
+            convList.add(0, updated)
+            _conversations.value = convList
+        }
     }
 
     fun reactToMessage(conversationId: String, messageId: String, emoji: String) {
@@ -1124,7 +1675,18 @@ class AppRepository(
 
         fun getInstance(context: android.content.Context? = null): AppRepository {
             return instance ?: synchronized(this) {
-                instance ?: AppRepository().also { instance = it }
+                val db = try {
+                    val dbIdRes = context?.resources?.getIdentifier("firestore_database_id", "string", context.packageName) ?: 0
+                    val dbId = if (dbIdRes != 0) context?.getString(dbIdRes) else null
+                    if (!dbId.isNullOrBlank() && dbId != "(default)") {
+                        FirebaseFirestore.getInstance(com.google.firebase.FirebaseApp.getInstance(), dbId)
+                    } else {
+                        FirebaseFirestore.getInstance()
+                    }
+                } catch (e: Exception) {
+                    try { FirebaseFirestore.getInstance() } catch (_: Exception) { null }
+                }
+                instance ?: AppRepository(firestoreDb = db).also { instance = it }
             }
         }
     }

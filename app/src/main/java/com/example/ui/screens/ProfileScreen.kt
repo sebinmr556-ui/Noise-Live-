@@ -1,5 +1,9 @@
 package com.example.ui.screens
 
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.result.PickVisualMediaRequest
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -47,6 +51,12 @@ enum class ProfileTab {
     TAGGED
 }
 
+enum class FollowListTab(val title: String) {
+    FOLLOWERS("Followers"),
+    FOLLOWING("Following"),
+    DISCOVER("Discover")
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfileScreen(
@@ -62,6 +72,10 @@ fun ProfileScreen(
 
     var selectedTab by remember { mutableStateOf(ProfileTab.POSTS) }
     var showEditProfileSheet by remember { mutableStateOf(false) }
+    var showSharePhotoSheet by remember { mutableStateOf(false) }
+    var showFollowListSheet by remember { mutableStateOf(false) }
+    var selectedFollowTab by remember { mutableStateOf(FollowListTab.FOLLOWERS) }
+    var selectedPostForDetail by remember { mutableStateOf<com.example.model.Post?>(null) }
     var showWalletSheet by remember { mutableStateOf(false) }
     var showVipSheet by remember { mutableStateOf(false) }
     var showProgressionSheet by remember { mutableStateOf(false) }
@@ -100,6 +114,12 @@ fun ProfileScreen(
                     }
                 },
                 actions = {
+                    IconButton(
+                        onClick = { showSharePhotoSheet = true },
+                        modifier = Modifier.testTag("profile_top_add_photo")
+                    ) {
+                        Icon(Icons.Default.AddBox, contentDescription = "Share Photo", tint = Color.White)
+                    }
                     TextButton(
                         onClick = onOpenGoogleSignIn,
                         modifier = Modifier.testTag("profile_google_sign_in_button")
@@ -196,9 +216,28 @@ fun ProfileScreen(
                         modifier = Modifier.weight(1f),
                         horizontalArrangement = Arrangement.SpaceAround
                     ) {
-                        ProfileStatItem(count = userPosts.size.toString(), label = "Posts")
-                        ProfileStatItem(count = "${(currentUser.followersCount / 1000f).let { "%.1f".format(it) }}k", label = "Followers")
-                        ProfileStatItem(count = currentUser.followingCount.toString(), label = "Following")
+                        ProfileStatItem(
+                            count = userPosts.size.toString(),
+                            label = "Posts"
+                        )
+                        ProfileStatItem(
+                            count = formatStatCount(currentUser.followersCount),
+                            label = "Followers",
+                            onClick = {
+                                selectedFollowTab = FollowListTab.FOLLOWERS
+                                showFollowListSheet = true
+                            },
+                            modifier = Modifier.testTag("profile_stat_followers")
+                        )
+                        ProfileStatItem(
+                            count = formatStatCount(currentUser.followingCount),
+                            label = "Following",
+                            onClick = {
+                                selectedFollowTab = FollowListTab.FOLLOWING
+                                showFollowListSheet = true
+                            },
+                            modifier = Modifier.testTag("profile_stat_following")
+                        )
                     }
                 }
             }
@@ -419,10 +458,11 @@ fun ProfileScreen(
 
                     Spacer(modifier = Modifier.height(10.dp))
 
-                    // Action buttons: Edit Profile, Share Profile
+                    // Action buttons: Edit Profile, Share Photo, Share Profile
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
                         Button(
                             onClick = { showEditProfileSheet = true },
@@ -436,18 +476,148 @@ fun ProfileScreen(
                         }
 
                         Button(
-                            onClick = {
-                                clipboardManager.setText(AnnotatedString("https://instawave.social/u/${currentUser.username}"))
-                            },
-                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+                            onClick = { showSharePhotoSheet = true },
+                            colors = ButtonDefaults.buttonColors(containerColor = DarkAccent),
                             shape = RoundedCornerShape(10.dp),
-                            modifier = Modifier.weight(1f)
+                            modifier = Modifier
+                                .weight(1.1f)
+                                .testTag("profile_share_photo_button")
                         ) {
-                            Text("Share profile", color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
+                            Icon(Icons.Default.AddPhotoAlternate, contentDescription = null, modifier = Modifier.size(16.dp), tint = Color.White)
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text("Share photo", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                        }
+
+                        IconButton(
+                            onClick = {
+                                clipboardManager.setText(AnnotatedString("https://noice.live/u/${currentUser.username}"))
+                            },
+                            modifier = Modifier
+                                .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(10.dp))
+                                .size(40.dp)
+                        ) {
+                            Icon(Icons.Default.Share, contentDescription = "Share profile", tint = MaterialTheme.colorScheme.onSurface, modifier = Modifier.size(18.dp))
                         }
                     }
 
-                    Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(modifier = Modifier.height(14.dp))
+                }
+            }
+
+            // Discover Creators to Follow
+            item {
+                val suggestedCreators by repository.suggestedCreators.collectAsState()
+                val followedIds by repository.followedUserIds.collectAsState()
+
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 2.dp)
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 8.dp)
+                    ) {
+                        Text(
+                            text = "Discover Creators",
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onBackground
+                        )
+                        Spacer(modifier = Modifier.weight(1f))
+                        Text(
+                            text = "See All",
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = DarkAccent,
+                            modifier = Modifier
+                                .clickable {
+                                    selectedFollowTab = FollowListTab.DISCOVER
+                                    showFollowListSheet = true
+                                }
+                                .testTag("discover_creators_see_all")
+                        )
+                    }
+
+                    LazyRow(
+                        horizontalArrangement = Arrangement.spacedBy(10.dp),
+                        contentPadding = PaddingValues(vertical = 4.dp)
+                    ) {
+                        items(suggestedCreators) { creator ->
+                            val isFollowing = followedIds.contains(creator.id)
+                            Surface(
+                                shape = RoundedCornerShape(12.dp),
+                                color = Color(0xFF1B1B22),
+                                border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFF2E2E3A)),
+                                modifier = Modifier.width(135.dp)
+                            ) {
+                                Column(
+                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                    modifier = Modifier.padding(10.dp)
+                                ) {
+                                    Box(
+                                        modifier = Modifier
+                                            .size(52.dp)
+                                            .clip(CircleShape)
+                                            .border(1.5.dp, DarkAccent, CircleShape)
+                                            .padding(2.dp)
+                                    ) {
+                                        AsyncImage(
+                                            model = creator.avatarUrl,
+                                            contentDescription = creator.fullName,
+                                            contentScale = ContentScale.Crop,
+                                            modifier = Modifier.fillMaxSize().clip(CircleShape)
+                                        )
+                                    }
+                                    Spacer(modifier = Modifier.height(6.dp))
+                                    Text(
+                                        text = creator.fullName,
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 12.sp,
+                                        maxLines = 1,
+                                        color = Color.White
+                                    )
+                                    Text(
+                                        text = "@${creator.username}",
+                                        fontSize = 10.sp,
+                                        color = Color.White.copy(alpha = 0.5f),
+                                        maxLines = 1
+                                    )
+                                    Spacer(modifier = Modifier.height(4.dp))
+                                    Text(
+                                        text = "${formatStatCount(creator.followersCount)} followers",
+                                        fontSize = 10.sp,
+                                        color = DarkAccent
+                                    )
+                                    Spacer(modifier = Modifier.height(8.dp))
+                                    Button(
+                                        onClick = {
+                                            repository.toggleFollow(creator.id, creator.username, creator.avatarUrl)
+                                        },
+                                        shape = RoundedCornerShape(8.dp),
+                                        colors = ButtonDefaults.buttonColors(
+                                            containerColor = if (isFollowing) Color(0xFF2E2E3A) else DarkAccent
+                                        ),
+                                        contentPadding = PaddingValues(horizontal = 6.dp, vertical = 2.dp),
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .height(30.dp)
+                                            .testTag("follow_creator_button_${creator.id}")
+                                    ) {
+                                        Text(
+                                            text = if (isFollowing) "Following" else "Follow",
+                                            fontSize = 11.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            color = Color.White
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(12.dp))
                 }
             }
 
@@ -560,11 +730,19 @@ fun ProfileScreen(
                 ProfileTab.POSTS -> {
                     if (userPosts.isEmpty()) {
                         item {
-                            EmptyTabPlaceholder(title = "Share Photos", subtitle = "When you share photos, they'll appear on your profile.")
+                            EmptyTabPlaceholder(
+                                title = "Share Photos",
+                                subtitle = "When you share photos, they'll be saved in Firebase and displayed here in your gallery.",
+                                actionText = "Share First Photo",
+                                onActionClick = { showSharePhotoSheet = true }
+                            )
                         }
                     } else {
                         item {
-                            ProfileGrid(posts = userPosts)
+                            ProfileGrid(
+                                posts = userPosts,
+                                onPostClick = { selectedPostForDetail = it }
+                            )
                         }
                     }
                 }
@@ -575,7 +753,10 @@ fun ProfileScreen(
                         }
                     } else {
                         item {
-                            ProfileGrid(posts = savedPosts)
+                            ProfileGrid(
+                                posts = savedPosts,
+                                onPostClick = { selectedPostForDetail = it }
+                            )
                         }
                     }
                 }
@@ -591,6 +772,31 @@ fun ProfileScreen(
                 }
             }
         }
+    }
+
+    // Share Photo Bottom Sheet
+    if (showSharePhotoSheet) {
+        SharePhotoBottomSheet(
+            repository = repository,
+            onDismiss = { showSharePhotoSheet = false }
+        )
+    }
+
+    // Followers & Following Bottom Sheet
+    if (showFollowListSheet) {
+        FollowersFollowingBottomSheet(
+            repository = repository,
+            initialTab = selectedFollowTab,
+            onDismiss = { showFollowListSheet = false }
+        )
+    }
+
+    // Photo Detail Sheet
+    selectedPostForDetail?.let { post ->
+        PostDetailBottomSheet(
+            post = post,
+            onDismiss = { selectedPostForDetail = null }
+        )
     }
 
     // Edit Profile Bottom Sheet
@@ -818,8 +1024,18 @@ private fun ProfileMenuItem(
 }
 
 @Composable
-private fun ProfileStatItem(count: String, label: String) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+private fun ProfileStatItem(
+    count: String,
+    label: String,
+    onClick: (() -> Unit)? = null,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = modifier
+            .then(if (onClick != null) Modifier.clickable { onClick() } else Modifier)
+            .padding(horizontal = 6.dp, vertical = 2.dp)
+    ) {
         Text(
             text = count,
             fontWeight = FontWeight.Bold,
@@ -834,8 +1050,20 @@ private fun ProfileStatItem(count: String, label: String) {
     }
 }
 
+private fun formatStatCount(count: Int): String {
+    return when {
+        count >= 1_000_000 -> "${"%.1f".format(count / 1_000_000f)}M"
+        count >= 10_000 -> "${count / 1_000}k"
+        count >= 1_000 -> "${"%.1f".format(count / 1_000f)}k"
+        else -> count.toString()
+    }
+}
+
 @Composable
-private fun ProfileGrid(posts: List<com.example.model.Post>) {
+private fun ProfileGrid(
+    posts: List<com.example.model.Post>,
+    onPostClick: (com.example.model.Post) -> Unit = {}
+) {
     Column(modifier = Modifier.fillMaxWidth()) {
         val rows = posts.chunked(3)
         rows.forEach { rowPosts ->
@@ -851,10 +1079,12 @@ private fun ProfileGrid(posts: List<com.example.model.Post>) {
                             .weight(1f)
                             .aspectRatio(1f)
                             .background(MaterialTheme.colorScheme.surfaceVariant)
+                            .clickable { onPostClick(post) }
+                            .testTag("photo_grid_item_${post.id}")
                     ) {
                         AsyncImage(
                             model = post.imageUrl,
-                            contentDescription = post.caption,
+                            contentDescription = post.caption.ifBlank { "Shared photo" },
                             contentScale = ContentScale.Crop,
                             colorFilter = PhotoFilterHelper.getColorFilter(post.filterApplied),
                             modifier = Modifier.fillMaxSize()
@@ -871,14 +1101,34 @@ private fun ProfileGrid(posts: List<com.example.model.Post>) {
 }
 
 @Composable
-private fun EmptyTabPlaceholder(title: String, subtitle: String) {
+private fun EmptyTabPlaceholder(
+    title: String,
+    subtitle: String,
+    actionText: String? = null,
+    onActionClick: () -> Unit = {}
+) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(40.dp),
+            .padding(36.dp),
         contentAlignment = Alignment.Center
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Box(
+                modifier = Modifier
+                    .size(64.dp)
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.surfaceVariant),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Default.CameraAlt,
+                    contentDescription = null,
+                    tint = DarkAccent,
+                    modifier = Modifier.size(32.dp)
+                )
+            }
+            Spacer(modifier = Modifier.height(12.dp))
             Text(
                 text = title,
                 fontWeight = FontWeight.Bold,
@@ -889,8 +1139,22 @@ private fun EmptyTabPlaceholder(title: String, subtitle: String) {
             Text(
                 text = subtitle,
                 fontSize = 13.sp,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = androidx.compose.ui.text.style.TextAlign.Center
             )
+            if (actionText != null) {
+                Spacer(modifier = Modifier.height(14.dp))
+                Button(
+                    onClick = onActionClick,
+                    colors = ButtonDefaults.buttonColors(containerColor = DarkAccent),
+                    shape = RoundedCornerShape(12.dp),
+                    modifier = Modifier.testTag("empty_state_action_button")
+                ) {
+                    Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(16.dp))
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text(text = actionText, fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                }
+            }
         }
     }
 }
@@ -910,6 +1174,14 @@ private fun EditProfileBottomSheet(
     var category by remember { mutableStateOf(currentUser.category) }
     var selectedColorHex by remember { mutableStateOf(currentUser.bannerAccentColorHex) }
     var selectedAvatar by remember { mutableStateOf(currentUser.avatarUrl) }
+
+    val avatarPickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.PickVisualMedia()
+    ) { uri: Uri? ->
+        uri?.let {
+            selectedAvatar = it.toString()
+        }
+    }
 
     val presetAvatars = listOf(
         "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&q=80",
@@ -980,9 +1252,25 @@ private fun EditProfileBottomSheet(
                         )
                     }
 
-                    Spacer(modifier = Modifier.height(6.dp))
+                    Spacer(modifier = Modifier.height(8.dp))
 
-                    Text("Choose Avatar Preset:", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    OutlinedButton(
+                        onClick = {
+                            avatarPickerLauncher.launch(
+                                PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                            )
+                        },
+                        shape = RoundedCornerShape(10.dp),
+                        modifier = Modifier.testTag("pick_avatar_button")
+                    ) {
+                        Icon(Icons.Default.PhotoCamera, contentDescription = null, modifier = Modifier.size(16.dp))
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text("Pick Custom Photo", fontSize = 12.sp)
+                    }
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    Text("Or Choose Avatar Preset:", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     Spacer(modifier = Modifier.height(4.dp))
                     LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         items(presetAvatars) { avatarUrl ->
@@ -1110,6 +1398,560 @@ private fun EditProfileBottomSheet(
 
                 Spacer(modifier = Modifier.height(24.dp))
             }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun SharePhotoBottomSheet(
+    repository: AppRepository,
+    onDismiss: () -> Unit
+) {
+    val presetPhotos = listOf(
+        "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1080&q=80",
+        "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=1080&q=80",
+        "https://images.unsplash.com/photo-1493246507139-91e8fad9978e?w=1080&q=80",
+        "https://images.unsplash.com/photo-1492691527719-9d1e07e534b4?w=1080&q=80",
+        "https://images.unsplash.com/photo-1518791841217-8f162f1e1131?w=1080&q=80"
+    )
+
+    var selectedImageUrl by remember { mutableStateOf(presetPhotos[0]) }
+    var captionText by remember { mutableStateOf("") }
+    var locationText by remember { mutableStateOf("") }
+    var isSharing by remember { mutableStateOf(false) }
+
+    val photoPickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.PickVisualMedia()
+    ) { uri: Uri? ->
+        uri?.let {
+            selectedImageUrl = it.toString()
+        }
+    }
+
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        containerColor = MaterialTheme.colorScheme.surface,
+        dragHandle = { BottomSheetDefaults.DragHandle() },
+        modifier = Modifier.testTag("share_photo_bottom_sheet")
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 8.dp)
+                .navigationBarsPadding()
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                TextButton(onClick = onDismiss) { Text("Cancel") }
+                Spacer(modifier = Modifier.weight(1f))
+                Text("Share to Profile", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                Spacer(modifier = Modifier.weight(1f))
+                Button(
+                    onClick = {
+                        isSharing = true
+                        val success = repository.createPost(
+                            caption = captionText,
+                            imageUrl = selectedImageUrl,
+                            location = locationText,
+                            tags = listOf("photography", "profile")
+                        )
+                        if (success) {
+                            onDismiss()
+                        }
+                        isSharing = false
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = DarkAccent),
+                    shape = RoundedCornerShape(16.dp),
+                    enabled = selectedImageUrl.isNotBlank() && !isSharing,
+                    modifier = Modifier.testTag("submit_share_photo_button")
+                ) {
+                    Text(if (isSharing) "Saving..." else "Share", color = Color.White, fontWeight = FontWeight.Bold)
+                }
+            }
+
+            HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+
+            // Photo Preview using Coil AsyncImage
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(200.dp)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(Color.Black),
+                contentAlignment = Alignment.Center
+            ) {
+                AsyncImage(
+                    model = selectedImageUrl,
+                    contentDescription = "Selected Photo Preview",
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.fillMaxSize()
+                )
+            }
+
+            Spacer(modifier = Modifier.height(10.dp))
+
+            // Quick Gallery Picker & Presets
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                OutlinedButton(
+                    onClick = {
+                        photoPickerLauncher.launch(
+                            PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                        )
+                    },
+                    shape = RoundedCornerShape(10.dp),
+                    modifier = Modifier.testTag("pick_gallery_photo_button")
+                ) {
+                    Icon(Icons.Default.AddPhotoAlternate, contentDescription = null, modifier = Modifier.size(16.dp))
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text("Device Gallery", fontSize = 12.sp)
+                }
+                Spacer(modifier = Modifier.width(8.dp))
+                LazyRow(
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    modifier = Modifier.weight(1f)
+                ) {
+                    items(presetPhotos) { presetUrl ->
+                        Box(
+                            modifier = Modifier
+                                .size(36.dp)
+                                .clip(RoundedCornerShape(8.dp))
+                                .border(
+                                    width = if (selectedImageUrl == presetUrl) 2.dp else 0.dp,
+                                    color = if (selectedImageUrl == presetUrl) DarkAccent else Color.Transparent,
+                                    shape = RoundedCornerShape(8.dp)
+                                )
+                                .clickable { selectedImageUrl = presetUrl }
+                        ) {
+                            AsyncImage(
+                                model = presetUrl,
+                                contentDescription = null,
+                                contentScale = ContentScale.Crop,
+                                modifier = Modifier.fillMaxSize()
+                            )
+                        }
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(10.dp))
+
+            OutlinedTextField(
+                value = captionText,
+                onValueChange = { captionText = it },
+                label = { Text("Write a caption...") },
+                shape = RoundedCornerShape(10.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .testTag("photo_caption_input"),
+                minLines = 2
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            OutlinedTextField(
+                value = locationText,
+                onValueChange = { locationText = it },
+                label = { Text("Add location (optional)") },
+                shape = RoundedCornerShape(10.dp),
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun PostDetailBottomSheet(
+    post: com.example.model.Post,
+    onDismiss: () -> Unit
+) {
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        containerColor = MaterialTheme.colorScheme.surface,
+        dragHandle = { BottomSheetDefaults.DragHandle() },
+        modifier = Modifier.testTag("post_detail_bottom_sheet")
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 4.dp)
+                .navigationBarsPadding()
+        ) {
+            // Header with author avatar and username
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 8.dp)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(36.dp)
+                        .clip(CircleShape)
+                        .border(1.dp, StoryGradient, CircleShape)
+                        .padding(1.5.dp)
+                ) {
+                    if (post.userAvatar.isNotBlank()) {
+                        AsyncImage(
+                            model = post.userAvatar,
+                            contentDescription = post.username,
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .clip(CircleShape)
+                        )
+                    } else {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .clip(CircleShape)
+                                .background(DarkAccent),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(Icons.Default.Person, contentDescription = null, tint = Color.White, modifier = Modifier.size(20.dp))
+                        }
+                    }
+                }
+                Spacer(modifier = Modifier.width(10.dp))
+                Column {
+                    Text(post.username, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                    if (post.location.isNotBlank()) {
+                        Text(post.location, fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                }
+                Spacer(modifier = Modifier.weight(1f))
+                Text(post.timestampText, fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+
+            // Full Photo loaded with Coil
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .aspectRatio(1f)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(Color.Black)
+            ) {
+                AsyncImage(
+                    model = post.imageUrl,
+                    contentDescription = post.caption,
+                    contentScale = ContentScale.Crop,
+                    colorFilter = PhotoFilterHelper.getColorFilter(post.filterApplied),
+                    modifier = Modifier.fillMaxSize()
+                )
+            }
+
+            Spacer(modifier = Modifier.height(10.dp))
+
+            // Caption
+            if (post.caption.isNotBlank()) {
+                Text(
+                    text = post.caption,
+                    fontSize = 13.sp,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    lineHeight = 18.sp
+                )
+                Spacer(modifier = Modifier.height(6.dp))
+            }
+
+            // Stats row
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(Icons.Default.Favorite, contentDescription = null, tint = Color.Red, modifier = Modifier.size(16.dp))
+                Spacer(modifier = Modifier.width(4.dp))
+                Text("${post.likesCount} likes", fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
+                Spacer(modifier = Modifier.width(16.dp))
+                Icon(Icons.Default.ChatBubbleOutline, contentDescription = null, tint = Color.White.copy(alpha = 0.6f), modifier = Modifier.size(16.dp))
+                Spacer(modifier = Modifier.width(4.dp))
+                Text("${post.commentsCount} comments", fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun FollowersFollowingBottomSheet(
+    repository: AppRepository,
+    initialTab: FollowListTab,
+    onDismiss: () -> Unit
+) {
+    var selectedTab by remember { mutableStateOf(initialTab) }
+    val currentUser by repository.currentUser.collectAsState()
+    val followedIds by repository.followedUserIds.collectAsState()
+    val suggestedCreators by repository.suggestedCreators.collectAsState()
+
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        containerColor = MaterialTheme.colorScheme.surface,
+        dragHandle = { BottomSheetDefaults.DragHandle() },
+        modifier = Modifier.testTag("followers_following_bottom_sheet")
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 4.dp)
+                .navigationBarsPadding()
+        ) {
+            Text(
+                text = "@${currentUser.username}",
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color.White,
+                modifier = Modifier
+                    .align(Alignment.CenterHorizontally)
+                    .padding(bottom = 12.dp)
+            )
+
+            // Tabs: Followers | Following | Discover
+            TabRow(
+                selectedTabIndex = selectedTab.ordinal,
+                containerColor = MaterialTheme.colorScheme.surface,
+                contentColor = DarkAccent,
+                divider = { HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)) }
+            ) {
+                Tab(
+                    selected = selectedTab == FollowListTab.FOLLOWERS,
+                    onClick = { selectedTab = FollowListTab.FOLLOWERS },
+                    text = {
+                        Text(
+                            text = "Followers (${formatStatCount(currentUser.followersCount)})",
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                )
+                Tab(
+                    selected = selectedTab == FollowListTab.FOLLOWING,
+                    onClick = { selectedTab = FollowListTab.FOLLOWING },
+                    text = {
+                        Text(
+                            text = "Following (${formatStatCount(currentUser.followingCount)})",
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                )
+                Tab(
+                    selected = selectedTab == FollowListTab.DISCOVER,
+                    onClick = { selectedTab = FollowListTab.DISCOVER },
+                    text = {
+                        Text(
+                            text = "Discover",
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                )
+            }
+
+            Spacer(modifier = Modifier.height(14.dp))
+
+            when (selectedTab) {
+                FollowListTab.FOLLOWING -> {
+                    val followingList = remember(suggestedCreators, followedIds) {
+                        suggestedCreators.filter { followedIds.contains(it.id) }
+                    }
+                    if (followingList.isEmpty()) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(32.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                Text(
+                                    text = "Not following anyone yet",
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 15.sp,
+                                    color = Color.White
+                                )
+                                Spacer(modifier = Modifier.height(6.dp))
+                                Text(
+                                    text = "Discover creators below to see their posts in your feed and connect in live rooms.",
+                                    fontSize = 12.sp,
+                                    color = Color.White.copy(alpha = 0.6f),
+                                    textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                                )
+                                Spacer(modifier = Modifier.height(14.dp))
+                                Button(
+                                    onClick = { selectedTab = FollowListTab.DISCOVER },
+                                    colors = ButtonDefaults.buttonColors(containerColor = DarkAccent),
+                                    shape = RoundedCornerShape(10.dp)
+                                ) {
+                                    Text("Find Creators", fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                                }
+                            }
+                        }
+                    } else {
+                        LazyColumn(
+                            verticalArrangement = Arrangement.spacedBy(10.dp),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .heightIn(max = 420.dp)
+                        ) {
+                            items(followingList) { user ->
+                                FollowUserRowItem(
+                                    user = user,
+                                    isFollowing = true,
+                                    onToggleFollow = {
+                                        repository.toggleFollow(user.id, user.username, user.avatarUrl)
+                                    }
+                                )
+                            }
+                        }
+                    }
+                }
+                FollowListTab.FOLLOWERS -> {
+                    if (currentUser.followersCount == 0) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(32.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                Text(
+                                    text = "No followers yet",
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 15.sp,
+                                    color = Color.White
+                                )
+                                Spacer(modifier = Modifier.height(6.dp))
+                                Text(
+                                    text = "Share photos and join voice stages to build your followers on NOICE LIVE!",
+                                    fontSize = 12.sp,
+                                    color = Color.White.copy(alpha = 0.6f),
+                                    textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                                )
+                            }
+                        }
+                    } else {
+                        val sampleFollowers = remember(suggestedCreators, currentUser.followersCount) {
+                            suggestedCreators.take(currentUser.followersCount.coerceAtMost(suggestedCreators.size))
+                        }
+                        LazyColumn(
+                            verticalArrangement = Arrangement.spacedBy(10.dp),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .heightIn(max = 420.dp)
+                        ) {
+                            items(sampleFollowers) { user ->
+                                val isFollowing = followedIds.contains(user.id)
+                                FollowUserRowItem(
+                                    user = user,
+                                    isFollowing = isFollowing,
+                                    onToggleFollow = {
+                                        repository.toggleFollow(user.id, user.username, user.avatarUrl)
+                                    }
+                                )
+                            }
+                        }
+                    }
+                }
+                FollowListTab.DISCOVER -> {
+                    LazyColumn(
+                        verticalArrangement = Arrangement.spacedBy(10.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .heightIn(max = 420.dp)
+                    ) {
+                        items(suggestedCreators) { user ->
+                            val isFollowing = followedIds.contains(user.id)
+                            FollowUserRowItem(
+                                user = user,
+                                isFollowing = isFollowing,
+                                onToggleFollow = {
+                                    repository.toggleFollow(user.id, user.username, user.avatarUrl)
+                                }
+                            )
+                        }
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+        }
+    }
+}
+
+@Composable
+private fun FollowUserRowItem(
+    user: UserProfile,
+    isFollowing: Boolean,
+    onToggleFollow: () -> Unit
+) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 4.dp)
+            .testTag("follow_row_${user.id}")
+    ) {
+        Box(
+            modifier = Modifier
+                .size(44.dp)
+                .clip(CircleShape)
+                .border(1.dp, StoryGradient, CircleShape)
+                .padding(1.5.dp)
+        ) {
+            AsyncImage(
+                model = user.avatarUrl,
+                contentDescription = user.fullName,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .clip(CircleShape)
+            )
+        }
+        Spacer(modifier = Modifier.width(12.dp))
+        Column(modifier = Modifier.weight(1f)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = user.fullName,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 13.sp,
+                    color = Color.White
+                )
+                if (user.isVerified) {
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Icon(
+                        imageVector = Icons.Default.CheckCircle,
+                        contentDescription = "Verified",
+                        tint = DarkAccent,
+                        modifier = Modifier.size(13.dp)
+                    )
+                }
+            }
+            Text(
+                text = "@${user.username} • ${formatStatCount(user.followersCount)} followers",
+                fontSize = 11.sp,
+                color = Color.White.copy(alpha = 0.5f)
+            )
+        }
+        Button(
+            onClick = onToggleFollow,
+            shape = RoundedCornerShape(8.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = if (isFollowing) Color(0xFF2E2E3A) else DarkAccent
+            ),
+            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp),
+            modifier = Modifier.testTag("follow_toggle_btn_${user.id}")
+        ) {
+            Text(
+                text = if (isFollowing) "Following" else "Follow",
+                fontSize = 11.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color.White
+            )
         }
     }
 }

@@ -369,7 +369,7 @@ fun VoiceRoomsScreen(
                             Column(modifier = Modifier.weight(1f)) {
                                 Row(verticalAlignment = Alignment.CenterVertically) {
                                     Text(
-                                        "Zoma Team • Supercar Stage",
+                                        "NOICE LIVE • Supercar Stage",
                                         fontWeight = FontWeight.Bold,
                                         color = Color.White,
                                         fontSize = 14.sp
@@ -2872,12 +2872,7 @@ private fun RoomRankingsSheet(
 ) {
     var selectedPeriod by remember { mutableStateOf(RoomRankingPeriod.DAILY) }
 
-    val mockRankings = listOf(
-        RoomRankingEntry(1, "u1", "Sultan Crown", "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=200", VipTier.CROWN_SUPREME, 128400, "128.4k Charm"),
-        RoomRankingEntry(2, "u2", "Amira Al-Noor", "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200", VipTier.DIAMOND, 94200, "94.2k Charm"),
-        RoomRankingEntry(3, "u3", "Sarah Melody", "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=200", VipTier.GOLD, 78100, "78.1k Charm"),
-        RoomRankingEntry(4, "u4", "Tariq Oud", "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200", VipTier.SILVER, 45200, "45.2k Charm")
-    )
+    val mockRankings = emptyList<RoomRankingEntry>()
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -2925,39 +2920,26 @@ private fun RoomRankingsSheet(
 
             Spacer(modifier = Modifier.height(14.dp))
 
-            LazyColumn(
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(260.dp)
+                    .height(180.dp),
+                contentAlignment = Alignment.Center
             ) {
-                items(mockRankings) { entry ->
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 6.dp)
-                    ) {
-                        Text(
-                            text = "#${entry.rank}",
-                            fontWeight = FontWeight.Black,
-                            fontSize = 14.sp,
-                            color = if (entry.rank == 1) GoldStar else Color.White
-                        )
-                        Spacer(modifier = Modifier.width(12.dp))
-                        Box(
-                            modifier = Modifier
-                                .size(40.dp)
-                                .clip(CircleShape)
-                        ) {
-                            AsyncImage(model = entry.userAvatar, contentDescription = null, modifier = Modifier.fillMaxSize())
-                        }
-                        Spacer(modifier = Modifier.width(10.dp))
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(text = entry.userName, fontSize = 13.sp, fontWeight = FontWeight.Bold, color = Color.White)
-                            Text(text = entry.vipTier.title, fontSize = 10.sp, color = Color(android.graphics.Color.parseColor(entry.vipTier.badgeColorHex)))
-                        }
-                        Text(text = entry.scoreLabel, fontSize = 12.sp, fontWeight = FontWeight.Bold, color = GoldStar)
-                    }
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text("🏆", fontSize = 32.sp)
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = "No rankings yet",
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 14.sp,
+                        color = Color.White
+                    )
+                    Text(
+                        text = "Send gifts and host voice rooms to appear here!",
+                        fontSize = 12.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 }
             }
         }

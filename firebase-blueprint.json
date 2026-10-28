@@ -91,12 +91,30 @@
         "createdAt": { "type": "string", "description": "Created timestamp" }
       },
       "required": ["id", "numericId", "title", "hostId"]
+    },
+    "follow": {
+      "title": "UserFollow",
+      "description": "Follow relationship between two users",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique follow ID: followerId_followingId" },
+        "followerId": { "type": "string", "description": "User UID who followed" },
+        "followingId": { "type": "string", "description": "Target user UID being followed" },
+        "followerUsername": { "type": "string", "description": "Follower username" },
+        "followerAvatar": { "type": "string", "description": "Follower avatar" },
+        "timestamp": { "type": "string", "description": "Follow timestamp" }
+      },
+      "required": ["id", "followerId", "followingId"]
     }
   },
   "firestore": {
     "/users/{userId}": {
       "schema": { "$ref": "user" },
       "description": "User profiles and wallet state"
+    },
+    "/follows/{followId}": {
+      "schema": { "$ref": "follow" },
+      "description": "User follow relationships"
     },
     "/posts/{postId}": {
       "schema": { "$ref": "post" },

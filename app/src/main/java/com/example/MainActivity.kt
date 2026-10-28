@@ -56,9 +56,10 @@ fun MainApp() {
     val credentialManager = remember { CredentialManager.create(context) }
 
     val currentUser by repository.currentUser.collectAsState()
+    val isUserAuthenticated by repository.isUserAuthenticated.collectAsState()
     var currentDestination by remember { mutableStateOf(MainDestination.HOME) }
     var isMessagesOpen by remember { mutableStateOf(false) }
-    var showGoogleSignInPage by remember { mutableStateOf(true) }
+    var showGoogleSignInPage by remember(isUserAuthenticated) { mutableStateOf(!isUserAuthenticated) }
 
     // Authentication Gating & Dialog State
     val authPromptAction by repository.authPromptRequest.collectAsState()
@@ -77,9 +78,13 @@ fun MainApp() {
                     .addCredentialOption(signInWithGoogleOption)
                     .build()
 
+                val activity = context as? android.app.Activity
+                    ?: (context as? android.content.ContextWrapper)?.baseContext as? android.app.Activity
+                    ?: context as android.app.Activity
+
                 val result = credentialManager.getCredential(
                     request = request,
-                    context = context
+                    context = activity
                 )
 
                 val credential = result.credential
@@ -102,10 +107,17 @@ fun MainApp() {
                 }
             } catch (e: GetCredentialCancellationException) {
                 isAuthLoading = false
-                // User cancelled account chooser
+                android.util.Log.w("Auth", "Google Sign-In flow cancelled or dismissed: ${e.message}", e)
+                authErrorMessage = "Sign-in was cancelled. Please choose your Google account to continue."
             } catch (e: Exception) {
                 isAuthLoading = false
-                authErrorMessage = e.localizedMessage ?: "Sign-in encountered an error"
+                android.util.Log.e("Auth", "Google Sign-In failed", e)
+                val msg = e.localizedMessage ?: "Sign-in encountered an error"
+                authErrorMessage = if (msg.contains("NoCredentialException") || msg.contains("no credentials", ignoreCase = true)) {
+                    "No Google accounts found on this device. Please add a Google account in Android Settings or use Explore Mode."
+                } else {
+                    msg
+                }
             }
         }
     }
