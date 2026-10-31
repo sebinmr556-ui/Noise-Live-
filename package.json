@@ -1,0 +1,8 @@
+{
+  "name": "noise-live",
+  "version": "1.0.0",
+  "type": "module",
+  "dependencies": {
+    "livekit-server-sdk": "^2.6.0"
+  }
+}
