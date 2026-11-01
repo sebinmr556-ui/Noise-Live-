@@ -1,0 +1,18 @@
+<resources>
+    <string name="app_name">NOICE LIVE</string>
+    <string name="title_registration">Create Profile</string>
+    <string name="subtitle_registration">Set up your identity on NOICE LIVE to join voice rooms and live streams</string>
+    <string name="label_display_name">Display Name</string>
+    <string name="placeholder_display_name">Enter your full name</string>
+    <string name="label_username">Username</string>
+    <string name="placeholder_username">e.g. alex_vip</string>
+    <string name="label_bio">Bio (Optional)</string>
+    <string name="placeholder_bio">Share a bit about yourself, interests or music taste</string>
+    <string name="btn_take_photo">Take Profile Photo</string>
+    <string name="btn_choose_gallery">Choose from Gallery</string>
+    <string name="btn_complete_registration">Complete Registration</string>
+    <string name="error_display_name_required">Display name cannot be empty</string>
+    <string name="error_username_invalid">Username must be 3-20 alphanumeric characters or underscores</string>
+    <string name="permission_camera_rationale">Camera access is required to take your profile picture</string>
+    <string name="badge_new_user">NEW</string>
+</resources>
