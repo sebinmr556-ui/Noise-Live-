@@ -1,0 +1,240 @@
+{
+  "entities": {
+    "user": {
+      "title": "UserProfile",
+      "description": "User profile with authentication, permanent unique numeric ID, lowercase username for prefix search, privacy control, wallet, VIP status, and progression levels",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "description": "Firebase Auth UID" },
+        "numericId": { "type": "string", "description": "Unique permanent 7-digit public User ID" },
+        "username": { "type": "string", "description": "Display username" },
+        "username_lower": { "type": "string", "description": "Lowercase username for case-insensitive prefix search" },
+        "fullName": { "type": "string", "description": "User's full name" },
+        "avatarUrl": { "type": "string", "description": "Profile picture URL" },
+        "bio": { "type": "string", "description": "User bio text" },
+        "isPrivate": { "type": "boolean", "description": "Whether account is private (true) or public (false)" },
+        "followersCount": { "type": "integer", "description": "Dynamic follower count" },
+        "followingCount": { "type": "integer", "description": "Dynamic following count" },
+        "postsCount": { "type": "integer", "description": "Dynamic posts count" },
+        "coinBalance": { "type": "integer", "description": "Available virtual coin balance" },
+        "wealthPoints": { "type": "integer", "description": "Total lifetime coin spend points" },
+        "wealthLevel": { "type": "integer", "description": "Calculated wealth level 1-50" },
+        "charmPoints": { "type": "integer", "description": "Total gift charm received points" },
+        "charmLevel": { "type": "integer", "description": "Calculated charm level 1-50" },
+        "userXp": { "type": "integer", "description": "Experience points from app activity" },
+        "userLevel": { "type": "integer", "description": "User level 1-100" },
+        "vipTierLevel": { "type": "integer", "description": "Active VIP level 0-15" },
+        "vipExpiry": { "type": "string", "description": "VIP expiration timestamp" },
+        "isOnline": { "type": "boolean", "description": "Whether user is currently active online" },
+        "presenceState": { "type": "string", "description": "Online presence status" },
+        "isAdmin": { "type": "boolean", "description": "Whether user is room administrator" },
+        "isSuperAdmin": { "type": "boolean", "description": "Whether user is platform super administrator" },
+        "isNewUser": { "type": "boolean", "description": "True when the user is newly registered and has not yet completed profile setup or first active session" },
+        "joinedAt": { "type": "string", "description": "Server timestamp when the user first joined" },
+        "profileSetupCompleted": { "type": "boolean", "description": "Whether the user has completed initial profile setup" },
+        "createdAt": { "type": "string", "description": "Account registration timestamp" }
+      },
+      "required": ["uid", "numericId", "username", "username_lower"]
+    },
+    "post": {
+      "title": "FeedPost",
+      "description": "Feed media post created by user with public/private visibility",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique post ID" },
+        "userId": { "type": "string", "description": "Creator UID" },
+        "username": { "type": "string", "description": "Creator username" },
+        "userAvatar": { "type": "string", "description": "Creator avatar" },
+        "imageUrl": { "type": "string", "description": "Photo URL" },
+        "caption": { "type": "string", "description": "Post caption" },
+        "likesCount": { "type": "integer", "description": "Count of likes" },
+        "commentsCount": { "type": "integer", "description": "Count of comments" },
+        "isAuthorPrivate": { "type": "boolean", "description": "Whether post author account is private" },
+        "timestamp": { "type": "integer", "description": "Epoch milliseconds timestamp" }
+      },
+      "required": ["id", "userId", "imageUrl", "timestamp"]
+    },
+    "story": {
+      "title": "UserStory",
+      "description": "24-hour expiring story uploaded by user",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique story ID" },
+        "userId": { "type": "string", "description": "Creator UID" },
+        "username": { "type": "string", "description": "Creator username" },
+        "userAvatar": { "type": "string", "description": "Creator avatar" },
+        "mediaUrl": { "type": "string", "description": "Story image URL" },
+        "isAuthorPrivate": { "type": "boolean", "description": "Whether story author account is private" },
+        "timestampMillis": { "type": "integer", "description": "Creation epoch milliseconds" },
+        "expiresAtMillis": { "type": "integer", "description": "Expiration epoch milliseconds (timestampMillis + 86400000)" }
+      },
+      "required": ["id", "userId", "mediaUrl", "timestampMillis", "expiresAtMillis"]
+    },
+    "comment": {
+      "title": "PostComment",
+      "description": "Comment left on a post",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique comment ID" },
+        "postId": { "type": "string", "description": "Parent post ID" },
+        "userId": { "type": "string", "description": "Commenter UID" },
+        "username": { "type": "string", "description": "Commenter username" },
+        "userAvatar": { "type": "string", "description": "Commenter avatar" },
+        "text": { "type": "string", "description": "Comment text" },
+        "timestamp": { "type": "string", "description": "Timestamp" }
+      },
+      "required": ["id", "postId", "userId", "text"]
+    },
+    "coinTransaction": {
+      "title": "CoinLedgerEntry",
+      "description": "Immutable ledger record for coin wallet purchases, gifts, and adjustments",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique transaction ID" },
+        "userId": { "type": "string", "description": "User UID" },
+        "numericId": { "type": "string", "description": "User numeric ID" },
+        "type": { "type": "string", "description": "Transaction type" },
+        "amount": { "type": "integer", "description": "Coin delta amount" },
+        "balanceBefore": { "type": "integer", "description": "Balance before transaction" },
+        "balanceAfter": { "type": "integer", "description": "Balance after transaction" },
+        "timestamp": { "type": "string", "description": "Timestamp" },
+        "metadata": { "type": "string", "description": "Transaction details or receipt reference" }
+      },
+      "required": ["id", "userId", "type", "amount"]
+    },
+    "voiceRoom": {
+      "title": "VoiceRoom",
+      "description": "LiveKit voice chatroom metadata and real-time room_listeners",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Room ID string" },
+        "numericId": { "type": "string", "description": "6-digit room ID" },
+        "title": { "type": "string", "description": "Room title" },
+        "hostId": { "type": "string", "description": "Host UID" },
+        "hostName": { "type": "string", "description": "Host name" },
+        "category": { "type": "string", "description": "Room category" },
+        "totalSlots": { "type": "integer", "description": "Number of stage seats" },
+        "isPrivate": { "type": "boolean", "description": "Password protected flag" },
+        "createdAt": { "type": "string", "description": "Created timestamp" }
+      },
+      "required": ["id", "numericId", "title", "hostId"]
+    },
+    "roomMember": {
+      "title": "RoomMemberPresence",
+      "description": "Real-time active listener or speaker presence inside a voice room",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "User UID" },
+        "name": { "type": "string", "description": "Display name" },
+        "username": { "type": "string", "description": "Username" },
+        "avatarUrl": { "type": "string", "description": "Avatar URL" },
+        "role": { "type": "string", "description": "HOST, SPEAKER, or LISTENER" },
+        "slotIndex": { "type": "integer", "description": "Speaker seat index (-1 if listener)" },
+        "isMuted": { "type": "boolean", "description": "Whether microphone is muted" },
+        "isNewUser": { "type": "boolean", "description": "Whether participant has New User status" },
+        "joinedAt": { "type": "integer", "description": "Epoch milliseconds when joined" }
+      },
+      "required": ["id", "username"]
+    },
+    "follow": {
+      "title": "UserFollow",
+      "description": "Follow relationship or pending follow request between two users",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique follow ID: followerId_followingId" },
+        "followerId": { "type": "string", "description": "User UID who followed" },
+        "followingId": { "type": "string", "description": "Target user UID being followed" },
+        "followerUsername": { "type": "string", "description": "Follower username" },
+        "followerName": { "type": "string", "description": "Follower full name" },
+        "followerAvatar": { "type": "string", "description": "Follower avatar" },
+        "status": { "type": "string", "description": "ACCEPTED or PENDING" },
+        "timestamp": { "type": "string", "description": "Follow timestamp" }
+      },
+      "required": ["id", "followerId", "followingId", "status"]
+    },
+    "chat": {
+      "title": "DirectMessageChat",
+      "description": "Direct message thread between two or more participants",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique chat ID" },
+        "participants": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Array of participant user UIDs"
+        },
+        "lastMessage": { "type": "string", "description": "Latest message snippet" },
+        "lastMessageText": { "type": "string", "description": "Latest message snippet text" },
+        "lastMessageSenderId": { "type": "string", "description": "Sender UID of latest message" },
+        "lastMessageTimestamp": { "type": "integer", "description": "Epoch milliseconds of latest message" },
+        "isTyping": { "type": "boolean", "description": "Real-time flag set to true when a participant is typing and removed when they stop" },
+        "typingUserId": { "type": "string", "description": "UID of the participant currently typing" },
+        "updatedAt": { "type": "integer", "description": "Epoch milliseconds of last update" }
+      },
+      "required": ["id", "participants", "lastMessageTimestamp"]
+    },
+    "chatMessage": {
+      "title": "DirectChatMessage",
+      "description": "Individual message inside a direct message chat room",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique message ID" },
+        "chatId": { "type": "string", "description": "Parent chat ID" },
+        "senderId": { "type": "string", "description": "Sender user UID" },
+        "senderName": { "type": "string", "description": "Sender display name" },
+        "senderAvatar": { "type": "string", "description": "Sender avatar URL" },
+        "text": { "type": "string", "description": "Message body text" },
+        "messageType": { "type": "string", "description": "TEXT, VOICE_NOTE, or PHOTO" },
+        "timestamp": { "type": "integer", "description": "Epoch milliseconds" },
+        "isRead": { "type": "boolean", "description": "Whether message has been read" }
+      },
+      "required": ["id", "chatId", "senderId", "timestamp"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "user" },
+      "description": "User profiles, privacy settings, and wallet state"
+    },
+    "/follows/{followId}": {
+      "schema": { "$ref": "follow" },
+      "description": "User follow relationships and private follow requests"
+    },
+    "/posts/{postId}": {
+      "schema": { "$ref": "post" },
+      "description": "Global public and follower-only private feed posts"
+    },
+    "/posts/{postId}/comments/{commentId}": {
+      "schema": { "$ref": "comment" },
+      "description": "Post comments"
+    },
+    "/stories/{storyId}": {
+      "schema": { "$ref": "story" },
+      "description": "24-hour expiring user stories"
+    },
+    "/transactions/{transactionId}": {
+      "schema": { "$ref": "coinTransaction" },
+      "description": "Audit-logged financial coin ledger"
+    },
+    "/rooms/{roomId}": {
+      "schema": { "$ref": "voiceRoom" },
+      "description": "Active voice chatrooms"
+    },
+    "/rooms/{roomId}/participants/{userId}": {
+      "schema": { "$ref": "roomMember" },
+      "description": "Real-time active participants and speaker slots inside a voice room"
+    },
+    "/rooms/{roomId}/room_members/{memberId}": {
+      "schema": { "$ref": "roomMember" },
+      "description": "Real-time active participants inside a voice room"
+    },
+    "/chats/{chatId}": {
+      "schema": { "$ref": "chat" },
+      "description": "Direct message conversations"
+    },
+    "/chats/{chatId}/messages/{messageId}": {
+      "schema": { "$ref": "chatMessage" },
+      "description": "Direct message items within a conversation"
+    }
+  }
+}
